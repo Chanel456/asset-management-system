@@ -10,15 +10,17 @@ from werkzeug.utils import redirect
 
 from config.config import Config
 
-app = Flask(__name__)
 db = SQLAlchemy()
 DB_NAME = 'database.db'
 
 def create_app(config_class=Config):
     """Initialises the flask app with config, registers the blueprints and, initialises the login manager """
 
+    app = Flask(__name__)
     app.config.from_object(config_class)
+
     logging.basicConfig(level= logging.INFO, format = f'%(asctime)s - %(levelname)s : %(message)s')
+
     db.init_app(app)
 
     #Import routes
@@ -32,6 +34,21 @@ def create_app(config_class=Config):
     app.register_blueprint(auth, url_prefix='/auth')
     app.register_blueprint(application, url_prefix='/application')
     app.register_blueprint(server, url_prefix='/server')
+
+    @app.route('/')
+    def redirect_to_home():
+        """Redirects base url to the dashboard html"""
+        return redirect(url_for('views.dashboard'))
+
+    @app.errorhandler(404)
+    def handle_not_found_error(err):
+        """Redirects to 404.html if a HTTP 404 error is thrown"""
+        return render_template('error/404.html', user=current_user), 404
+
+    @app.errorhandler(500)
+    def handle_internal_server_error(err):
+        """Redirects to 500.html if a 500 error is thrown"""
+        return render_template('error/500.html', user=current_user), 500
 
     from app.models.user import User
 
@@ -50,18 +67,3 @@ def create_app(config_class=Config):
         return User.query.get(int(id))
 
     return app
-
-@app.route('/')
-def redirect_to_home():
-    """Redirects base url to the dashboard html"""
-    return redirect(url_for('views.dashboard'))
-
-@app.errorhandler(404)
-def handle_not_found_error(err):
-    """Redirects to 404.html if a HTTP 404 error is thrown"""
-    return render_template('error/404.html', user=current_user), 404
-
-@app.errorhandler(500)
-def handle_internal_server_error(err):
-    """Redirects to 500.html if a 500 error is thrown"""
-    return render_template('error/500.html', user=current_user), 500

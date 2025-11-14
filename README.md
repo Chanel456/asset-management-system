@@ -21,4 +21,5 @@ This system provides a central place where employees can register department ser
 #### Install requirements and run application
 - In the terminal run the command `pip install -r requirements.txt`
 - Next run the command `python main.py`
+- -Navigate to http://localhost:5000
 

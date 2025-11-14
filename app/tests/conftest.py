@@ -12,8 +12,9 @@ def app():
     app = create_app(TestConfig)
     with app.app_context():
         db.create_all()
-
-    yield app
+        yield app
+        db.session.remove()
+        db.drop_all()
 
 @pytest.fixture
 def client(app):
@@ -31,13 +32,23 @@ class AuthActions(object):
     def register(self, first_name, last_name, email, password, confirm_password, account_type):
         return self._client.post(
             '/auth/register',
-            data={'first_name': first_name, 'last_name': last_name, 'email': email, 'password': password, 'confirm_password': confirm_password, 'account_type': account_type }
+            data={
+                'first_name': first_name,
+                'last_name': last_name,
+                'email': email,
+                'password': password,
+                'confirm_password': confirm_password,
+                'account_type': account_type
+            }
         )
 
     def login(self, email, password):
         return self._client.post(
            '/auth/login',
-            data={'login_email': email, 'login_password': password},
+            data={
+                'login_email': email,
+                'login_password': password
+            },
             follow_redirects = True
         )
 
