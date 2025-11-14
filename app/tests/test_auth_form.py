@@ -37,13 +37,13 @@ def test_email_validator_fails(app):
 def test_registration_form_validation_passes(app):
     with app.app_context():
         with app.test_request_context():
-            form = RegistrationForm(data={'account_type': 'regular', 'email': 'test.user1@gmail.com', 'first_name': 'Hello', 'password': '#Password1234', 'confirm_password': '#Password1234'})
+            form = RegistrationForm(data={'account_type': 'regular', 'email': 'test.user1@gmail.com', 'first_name': 'Hello', 'last_name': "Williams", 'password': '#Password1234', 'confirm_password': '#Password1234'})
             assert form.validate() == True
 
 def test_registration_form_validation_fails(app):
     with app.app_context():
         with app.test_request_context():
-            form = RegistrationForm( data={'account_type': 'regular', 'email': 'test.user1@', 'first_name': 'Hello', 'password': '#Password34', 'confirm_password': '#Password14'})
+            form = RegistrationForm( data={'account_type': 'regular', 'email': 'test.user1@', 'first_name': 'Hello', 'last_name': "Williams", 'password': '#Password34', 'confirm_password': '#Password14'})
             assert form.validate() == False
 
 def test_login_form_validation_passes(app, init_user_table):

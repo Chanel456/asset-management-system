@@ -97,6 +97,7 @@ def test_validate_swagger_passes(app):
 def test_validate_swagger_fails(app):
     with app.app_context():
         with app.test_request_context():
+            g.form_type = FormType.CREATE.value
             form = ApplicationForm()
             form.swagger.data = 'hts://exampleapp/swagger/'
             with pytest.raises(ValidationError):
