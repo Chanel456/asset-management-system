@@ -1,5 +1,5 @@
 import logging
-from flask import render_template, request, flash, redirect, url_for
+from flask import render_template, request, flash, redirect, url_for, session
 from flask_login import login_user, login_required, logout_user, current_user
 
 from app.auth.forms import RegistrationForm, LoginForm
@@ -19,10 +19,11 @@ def login():
         user = User.find_user_by_email(form.login_email.data)
         if user:
             if form.validate_on_submit():
-                   login_user(user, remember = True)
-                   logging.info('%s logged in successfully', user.email)
-                   flash('Logged in successfully.', category='success')
-                   return redirect(url_for('views.dashboard'))
+                session.clear()
+                login_user(user, remember = False)
+                logging.info('%s logged in successfully', user.email)
+                flash('Logged in successfully.', category='success')
+                return redirect(url_for('views.dashboard'))
         else:
             flash('There is no account linked with this email address. Please create an account', category='error')
 
@@ -34,6 +35,7 @@ def logout():
     """Logout a user and redirect to the login page"""
     logging.info('User: %s successfully logged out', current_user.email)
     logout_user()
+    session.clear()
     return redirect(url_for('auth.login'))
 
 @auth.route('/register', methods=['GET', 'POST'])

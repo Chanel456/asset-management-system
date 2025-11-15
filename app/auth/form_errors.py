@@ -9,6 +9,10 @@ class RegistrationFormError(Enum):
     INVALID_FIRST_NAME_FORMAT = 'First name must only contain alphabetic characters and hyphens. First name cannot start or end with a hyphen'
     INVALID_LAST_NAME_LENGTH = 'Last name cannot exceed 150 characters'
     INVALID_LAST_NAME_FORMAT = 'Last name must only contain alphabetic characters and hyphens. Last name cannot start or end with a hyphen'
+    WEAK_PASSWORD = 'This password is a commonly used breached password. Please choose a different one'
+    PASSWORD_CHECK_FAILED = 'Password check failed. Try again later'
+    PASSWORD_SAFETY = 'Unable to verify password safety. Try again later.'
 
 class LoginFormErrors(Enum):
     INCORRECT_EMAIL_OR_PASSWORD = 'Incorrect email or password'
+    INCORRECT_PASSWORD = 'Incorrect Password'

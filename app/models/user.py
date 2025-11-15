@@ -33,6 +33,7 @@ class User(db.Model, UserMixin):
     first_name = db.Column(db.String(150), nullable=False)
     last_name = db.Column(db.String(150), nullable=False)
     is_admin = db.Column(db.Boolean, nullable=False)
+    failed_attempts = db.Column(db.Integer, default=0, nullable=False)
 
     @staticmethod
     def find_user_by_email(email):
