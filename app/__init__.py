@@ -7,11 +7,10 @@ from os import path
 from werkzeug.utils import redirect
 
 from app.extensions import db, init_extensions
-from config.config import Config
 
 DB_NAME = 'database.db'
 
-def create_app(config_class=Config):
+def create_app(config_class):
     """Initialises the flask app with config, registers the blueprints and, initialises the login manager """
 
     app = Flask(__name__)

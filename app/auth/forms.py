@@ -38,7 +38,7 @@ class RegistrationForm(FlaskForm):
     last_name = StringField('Last Name', [DataRequired(), validators.Length(min=2, max=150, message= RegistrationFormError.INVALID_LAST_NAME_LENGTH.value),
                                           validators.Regexp('^[A-Za-z-]+$', message=RegistrationFormError.INVALID_LAST_NAME_FORMAT.value)])
     password = PasswordField('Password', [DataRequired(),
-                                          validators.Regexp('^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*_+])[A-Za-z\d!@#$%^&*_+]{7,20}$', message=RegistrationFormError.PASSWORD_DOES_NOT_MEET_REQUIREMENTS.value),
+                                          validators.Regexp(r'^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*_+])[A-Za-z\d!@#$%^&*_+]{7,20}$', message=RegistrationFormError.PASSWORD_DOES_NOT_MEET_REQUIREMENTS.value),
                                           validators.Length(min=7, max=20, message=RegistrationFormError.INVALID_PASSWORD_LENGTH.value), validators.EqualTo('confirm_password', message=RegistrationFormError.PASSWORDS_DO_NOT_MATCH.value), Utils.breached_password_validator])
     confirm_password = PasswordField('Confirm Password', [DataRequired(), validators.Length(min=7, max=20, message=RegistrationFormError.INVALID_PASSWORD_LENGTH.value), validators.EqualTo('password', message=RegistrationFormError.PASSWORDS_DO_NOT_MATCH.value), Utils.breached_password_validator])
 
@@ -84,3 +84,25 @@ class LoginForm(FlaskForm):
             Utils.log_failure(self.login_email.data, LoginFormErrors.INCORRECT_PASSWORD.value)
             db.session.commit()
             raise ValidationError(LoginFormErrors.INCORRECT_EMAIL_OR_PASSWORD.value)
+
+class ForgotPasswordForm(FlaskForm):
+    email = EmailField('Email', [DataRequired(),
+                                 validators.Length(max=150, message=GeneralFormError.INVALID_EMAIL_LENGTH.value)])
+
+
+
+class ResetPasswordForm(FlaskForm):
+    password = PasswordField('Password', [DataRequired(),
+                                          validators.Regexp(
+                                              r'^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*_+])[A-Za-z\d!@#$%^&*_+]{7,20}$',
+                                              message=RegistrationFormError.PASSWORD_DOES_NOT_MEET_REQUIREMENTS.value),
+                                          validators.Length(min=7, max=20,
+                                                            message=RegistrationFormError.INVALID_PASSWORD_LENGTH.value),
+                                          validators.EqualTo('confirm_password',
+                                                             message=RegistrationFormError.PASSWORDS_DO_NOT_MATCH.value),
+                                          Utils.breached_password_validator])
+    confirm_password = PasswordField('Confirm Password', [DataRequired(), validators.Length(min=7, max=20,
+                                                                                            message=RegistrationFormError.INVALID_PASSWORD_LENGTH.value),
+                                                          validators.EqualTo('password',
+                                                                             message=RegistrationFormError.PASSWORDS_DO_NOT_MATCH.value),
+                                                          Utils.breached_password_validator])

@@ -2,9 +2,10 @@ import logging
 from flask import render_template, request, flash, redirect, url_for, session
 from flask_login import login_user, login_required, logout_user, current_user
 
-from app.auth.forms import RegistrationForm, LoginForm
+from app.auth.forms import RegistrationForm, LoginForm, ForgotPasswordForm, ResetPasswordForm
 from app.models.user import User
 from app.auth import auth
+from app.shared.shared import Utils
 
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
@@ -54,3 +55,36 @@ def register():
         return redirect(url_for('auth.login'))
 
     return render_template('auth/register.html', user=current_user, form=form)
+
+@auth.route('/forgot-password', methods=['GET', 'POST'])
+def forgot():
+    # redirects the user to the dashboard if they are already logged in
+    if current_user.is_authenticated:
+        return redirect(url_for('views.dashboard'))
+
+    form = ForgotPasswordForm()
+    user = User.find_user_by_email(form.email.data)
+
+    if user:
+        Utils.send_password_reset_email(user)
+        flash("If that email exists, we have sent a password reset link.", category='success')
+
+    return render_template('auth/forgot-password.html', user=current_user, form=form)
+
+@auth.route('/reset-password/<token>', methods=['GET', 'POST'])
+def reset(token):
+    #redirects the user to the dashboard if they are already logged in
+    if current_user.is_authenticated:
+        return redirect(url_for('views.dashboard'))
+
+    form = ResetPasswordForm()
+    email = Utils.verify_reset_token(token)
+    if not email:
+        flash('Invalid or expired token', category='error')
+        return redirect(url_for('auth.forgot'))
+
+    if request.method == 'POST' and form.validate_on_submit():
+        User.update_password(email, form.password.data)
+        return redirect(url_for('auth.login'))
+
+    return render_template('auth/reset-password.html', user=current_user, form=form, token=token)

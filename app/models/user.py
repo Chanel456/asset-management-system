@@ -62,3 +62,18 @@ class User(db.Model, UserMixin):
             logging.info('%s account created successfully', email)
             flash('Account created successfully!', category='success')
 
+    @staticmethod
+    def update_password(email, password):
+        """Updates users password"""
+        try:
+            user = User.find_user_by_email(email)
+            user.password = generate_password_hash(password, method='scrypt')
+            db.session.commit()
+        except SQLAlchemyError as err:
+            db.session.rollback()
+            logging.error('Unable to update password for user: %s', email)
+            logging.error(err)
+            flash('Unable to update password', category='error')
+        else:
+            logging.info('%s password updated successfully', email)
+            flash('Password updated successfully!', category='success')
