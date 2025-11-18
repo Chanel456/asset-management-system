@@ -14,8 +14,8 @@ from app.models.user import User
 
 
 class FormType(Enum):
-    CREATE = "Create"
-    UPDATE = "Update"
+    CREATE = 'Create'
+    UPDATE = 'Update'
 
 class GeneralFormError(Enum):
     INVALID_URL = 'Please enter a valid URL'
@@ -44,8 +44,8 @@ class Utils:
     @staticmethod
     def log_failure(email, reason):
         logging.warning(
-            f"Login failure | email={email} | ip={request.remote_addr} "
-            f"| user_agent={request.user_agent.string} | reason={reason}"
+            f'Login failure | email={email} | ip={request.remote_addr} '
+            f'| user_agent={request.user_agent.string} | reason={reason}'
         )
 
     @staticmethod
@@ -53,17 +53,17 @@ class Utils:
         serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
         logging.info(user.password)
         return serializer.dumps(
-            {"email": user.email, "pw_hash": user.password},
-            salt="password-reset"
+            {'email': user.email, 'pw_hash': user.password},
+            salt='password-reset'
         )
 
     @staticmethod
     def verify_reset_token(token, expiration=3600):
         serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
         try:
-            data = serializer.loads(token, salt="password-reset", max_age=3600)
+            data = serializer.loads(token, salt='password-reset', max_age=3600)
         except Exception as e:
-            logging.error(f"Invalid or expired reset token: {e}")
+            logging.error(f'Invalid or expired reset token: {e}')
             return redirect(url_for('auth.forgot'))
 
         email = data.get("email")
@@ -92,7 +92,7 @@ class Utils:
             recipients=recipients,
             body=body,
             html=html,
-            sender=current_app.config.get("MAIL_DEFAULT_SENDER")
+            sender=current_app.config.get('MAIL_DEFAULT_SENDER')
         )
         mail.send(msg)
 
@@ -106,8 +106,8 @@ class Utils:
         reset_url = url_for("auth.reset", token=token, _external=True)
         logging.info(reset_url)
 
-        subject = "Password Reset Request"
-        body = f"To reset your password, click the following link:\n{reset_url}"
+        subject = 'Password Reset Request'
+        body = f'To reset your password, click the following link:\n{reset_url}'
         html = f"<p>To reset your password, click the following link:</p><p><a href='{reset_url}'>{reset_url}</a></p>"
 
         Utils.send_email(subject, [user.email], body, html)
