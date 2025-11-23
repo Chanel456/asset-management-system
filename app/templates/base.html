@@ -39,6 +39,11 @@
           <li class="nav-item">
           <a class="nav-link" href="{{ url_for('server.all_servers') }}">Servers</a>
         </li>
+            {% if user.is_admin %}
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('failed_logins.all_failed_logins') }}">Failed Logins</a>
+            </li>
+            {% endif %}
           {% else %}
         <li class="nav-item">
           <a class="nav-link" href="{{ url_for('auth.login') }}">Login</a>

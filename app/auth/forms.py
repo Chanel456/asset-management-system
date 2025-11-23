@@ -9,8 +9,11 @@ from wtforms.validators import DataRequired, ValidationError
 
 from app import db
 from app.auth.form_errors import LoginFormErrors, RegistrationFormError
+from app.auth.helpers import log_failure
 from app.models.user import User
-from app.shared.shared import GeneralFormError, Utils
+from app.shared.general_form_error_enum import GeneralFormError
+from app.shared.shared import breached_password_validator
+
 
 class RegistrationForm(FlaskForm):
     """
@@ -39,8 +42,8 @@ class RegistrationForm(FlaskForm):
                                           validators.Regexp('^[A-Za-z-]+$', message=RegistrationFormError.INVALID_LAST_NAME_FORMAT.value)])
     password = PasswordField('Password', [DataRequired(),
                                           validators.Regexp(r'^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*_+])[A-Za-z\d!@#$%^&*_+]{7,20}$', message=RegistrationFormError.PASSWORD_DOES_NOT_MEET_REQUIREMENTS.value),
-                                          validators.Length(min=7, max=20, message=RegistrationFormError.INVALID_PASSWORD_LENGTH.value), validators.EqualTo('confirm_password', message=RegistrationFormError.PASSWORDS_DO_NOT_MATCH.value), Utils.breached_password_validator])
-    confirm_password = PasswordField('Confirm Password', [DataRequired(), validators.Length(min=7, max=20, message=RegistrationFormError.INVALID_PASSWORD_LENGTH.value), validators.EqualTo('password', message=RegistrationFormError.PASSWORDS_DO_NOT_MATCH.value), Utils.breached_password_validator])
+                                          validators.Length(min=7, max=20, message=RegistrationFormError.INVALID_PASSWORD_LENGTH.value), validators.EqualTo('confirm_password', message=RegistrationFormError.PASSWORDS_DO_NOT_MATCH.value), breached_password_validator])
+    confirm_password = PasswordField('Confirm Password', [DataRequired(), validators.Length(min=7, max=20, message=RegistrationFormError.INVALID_PASSWORD_LENGTH.value), validators.EqualTo('password', message=RegistrationFormError.PASSWORDS_DO_NOT_MATCH.value), breached_password_validator])
 
 
     def validate_email(self, field):
@@ -81,7 +84,7 @@ class LoginForm(FlaskForm):
             db.session.commit()
         elif user and not check_password_hash(user.password, field.data):
             user.failed_attempts += 1
-            Utils.log_failure(self.login_email.data, LoginFormErrors.INCORRECT_PASSWORD.value)
+            log_failure(self.login_email.data, LoginFormErrors.INCORRECT_PASSWORD.value)
             db.session.commit()
             raise ValidationError(LoginFormErrors.INCORRECT_EMAIL_OR_PASSWORD.value)
 
@@ -100,9 +103,9 @@ class ResetPasswordForm(FlaskForm):
                                                             message=RegistrationFormError.INVALID_PASSWORD_LENGTH.value),
                                           validators.EqualTo('confirm_password',
                                                              message=RegistrationFormError.PASSWORDS_DO_NOT_MATCH.value),
-                                          Utils.breached_password_validator])
+                                          breached_password_validator])
     confirm_password = PasswordField('Confirm Password', [DataRequired(), validators.Length(min=7, max=20,
                                                                                             message=RegistrationFormError.INVALID_PASSWORD_LENGTH.value),
                                                           validators.EqualTo('password',
                                                                              message=RegistrationFormError.PASSWORDS_DO_NOT_MATCH.value),
-                                                          Utils.breached_password_validator])
+                                                          breached_password_validator])

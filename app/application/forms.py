@@ -7,7 +7,8 @@ from wtforms.validators import DataRequired, ValidationError, NumberRange
 
 from app.application.form_errors import ApplicationFormError
 from app.models.application import Application
-from app.shared.shared import FormType, GeneralFormError
+from app.shared.form_type_enum import FormType
+from app.shared.general_form_error_enum import GeneralFormError
 
 
 class ApplicationForm(FlaskForm):

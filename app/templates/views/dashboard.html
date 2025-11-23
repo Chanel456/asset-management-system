@@ -7,26 +7,38 @@
     <p>Role: {{ 'Admin' if current_user.is_admin == True else 'Regular' }}</p>
 
     <div class="d-flex flex-row mb-3">
-    <div class="card">
-      <div class="card-header">
-        Applications
-      </div>
-      <div class="card-body">
-        <p class="card-text">View all department applications and relevant information</p>
-        <a href="{{ url_for('application.all_applications') }}" class="btn btn-primary">View Applications</a>
-      </div>
-    </div>
+        <div class="card">
+            <div class="card-header">
+                Applications
+            </div>
+            <div class="card-body">
+                <p class="card-text">View all department applications and relevant information</p>
+                <a href="{{ url_for('application.all_applications') }}" class="btn btn-primary">View Applications</a>
+            </div>
+        </div>
 
-    <div class="card mx-2">
-      <div class="card-header">
-        Servers
-      </div>
-      <div class="card-body">
-        <p class="card-text">View all department servers and relevant information</p>
-        <a href="{{ url_for('server.all_servers') }}" class="btn btn-primary">View Servers</a>
-      </div>
+        <div class="card mx-2">
+            <div class="card-header">
+                Servers
+            </div>
+            <div class="card-body">
+                <p class="card-text">View all department servers and relevant information</p>
+                <a href="{{ url_for('server.all_servers') }}" class="btn btn-primary">View Servers</a>
+            </div>
+        </div>
+
+        {% if user.is_admin %}
+        <div class="card mx-2">
+            <div class="card-header">
+                Failed Logins
+            </div>
+            <div class="card-body">
+                <p class="card-text">View all failed logins</p>
+                <a href="{{ url_for('failed_logins.all_failed_logins') }}" class="btn btn-primary">View Servers</a>
+            </div>
+        </div>
+        {% endif %}
     </div>
-</div>
 </div>
 
 {% endblock %}

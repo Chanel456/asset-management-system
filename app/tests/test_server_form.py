@@ -2,7 +2,7 @@ from flask import g
 
 from app.server.form_errors import ServerFormError
 from app.server.forms import ServerForm
-from app.shared.shared import FormType
+from app.shared.form_type_enum import FormType
 
 
 def test_form_passes(app):

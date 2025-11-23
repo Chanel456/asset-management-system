@@ -3,9 +3,10 @@ from flask import render_template, request, flash, redirect, url_for, session
 from flask_login import login_user, login_required, logout_user, current_user
 
 from app.auth.forms import RegistrationForm, LoginForm, ForgotPasswordForm, ResetPasswordForm
+from app.auth.helpers import verify_reset_token, send_password_reset_email
+from app.models.failed_login import FailedLogin
 from app.models.user import User
 from app.auth import auth
-from app.shared.shared import Utils
 
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
@@ -26,6 +27,7 @@ def login():
                 flash('Logged in successfully.', category='success')
                 return redirect(url_for('views.dashboard'))
         else:
+            FailedLogin.record_failed_login(form.login_email.data, request.remote_addr, request.user_agent.string)
             flash('There is no account linked with this email address. Please create an account', category='error')
 
     return render_template('auth/login.html', user=current_user, form=form)
@@ -66,7 +68,7 @@ def forgot():
     user = User.find_user_by_email(form.email.data)
 
     if user:
-        Utils.send_password_reset_email(user)
+        send_password_reset_email(user)
         flash("If that email exists, we have sent a password reset link.", category='success')
 
     return render_template('auth/forgot-password.html', user=current_user, form=form)
@@ -78,7 +80,7 @@ def reset(token):
         return redirect(url_for('views.dashboard'))
 
     form = ResetPasswordForm()
-    email = Utils.verify_reset_token(token)
+    email = verify_reset_token(token)
     if not email:
         flash('Invalid or expired token', category='error')
         return redirect(url_for('auth.forgot'))

@@ -24,12 +24,14 @@ def create_app(config_class):
     from app.auth import auth
     from app.application import application
     from app.server import server
+    from app.failed_logins import failed_logins
 
     #Register blueprints
     app.register_blueprint(views, url_prefix='/views')
     app.register_blueprint(auth, url_prefix='/auth')
     app.register_blueprint(application, url_prefix='/application')
     app.register_blueprint(server, url_prefix='/server')
+    app.register_blueprint(failed_logins, url_prefix='/failed-logins')
 
     @app.route('/')
     def redirect_to_home():

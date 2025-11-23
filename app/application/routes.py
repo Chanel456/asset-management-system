@@ -6,7 +6,7 @@ from app.application.forms import ApplicationForm
 from app.application.form_errors import ApplicationFormError
 from app.models.application import Application
 from app.models.server import Server
-from app.shared.shared import FormType
+from app.shared.form_type_enum import FormType
 
 
 @application.route('/create', methods=['GET', 'POST'])
