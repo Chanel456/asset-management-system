@@ -25,6 +25,8 @@ class User(db.Model, UserMixin):
         Password for accessing the application
     is_admin: Boolean
         Stores if this user has an admin role. True = user has admin privileges
+    failed_attempts: Integer
+        Stores the number of failed login for user
     """
 
     id = db.Column(db.Integer, primary_key = True)

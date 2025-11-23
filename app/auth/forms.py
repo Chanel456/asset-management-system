@@ -75,6 +75,9 @@ class LoginForm(FlaskForm):
 
         user = User.find_user_by_email(self.login_email.data)
 
+        if user is None:
+            raise ValidationError(LoginFormErrors.INCORRECT_EMAIL_OR_PASSWORD.value)
+
         if user.failed_attempts > 0:
             delay = min(2 ** user.failed_attempts, 8)
             time.sleep(delay)
@@ -89,12 +92,30 @@ class LoginForm(FlaskForm):
             raise ValidationError(LoginFormErrors.INCORRECT_EMAIL_OR_PASSWORD.value)
 
 class ForgotPasswordForm(FlaskForm):
+    """
+        A class to represents the input fields for a user who wishes to generate a forgot password email
+
+        Fields
+        -------------
+        email: email
+            The email address for the account
+        """
     email = EmailField('Email', [DataRequired(),
                                  validators.Length(max=150, message=GeneralFormError.INVALID_EMAIL_LENGTH.value)])
 
 
 
 class ResetPasswordForm(FlaskForm):
+    """
+        A class to represents the input fields for signing in to the application
+
+        Fields
+        -------------
+        password: password
+            New password for the account
+        confirm_password: password
+            Confirm the new password
+        """
     password = PasswordField('Password', [DataRequired(),
                                           validators.Regexp(
                                               r'^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*_+])[A-Za-z\d!@#$%^&*_+]{7,20}$',

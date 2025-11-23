@@ -60,6 +60,8 @@ def register():
 
 @auth.route('/forgot-password', methods=['GET', 'POST'])
 def forgot():
+    """Send a forgot password email if the email address is linked an account"""
+
     # redirects the user to the dashboard if they are already logged in
     if current_user.is_authenticated:
         return redirect(url_for('views.dashboard'))
@@ -75,6 +77,8 @@ def forgot():
 
 @auth.route('/reset-password/<token>', methods=['GET', 'POST'])
 def reset(token):
+    """Resets the users password"""
+
     #redirects the user to the dashboard if they are already logged in
     if current_user.is_authenticated:
         return redirect(url_for('views.dashboard'))

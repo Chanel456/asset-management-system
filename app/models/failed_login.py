@@ -1,5 +1,4 @@
 import logging
-import time
 from datetime import timedelta, datetime
 
 from sqlalchemy import event
@@ -8,8 +7,24 @@ from sqlalchemy.exc import SQLAlchemyError
 from app import db
 
 class FailedLogin(db.Model):
+    """
+            A class to represent the relational database table used to store the details of a department server
+
+            Columns
+            -------------------
+            id: Integer
+                Identifier for each record
+            email: VARCHAR(150)
+                Email address of failed login
+            ip: VARCHAR(45)
+                IP address of failed login
+            user_agent: VARCHAR(255)
+                Client used during failed login
+            created_at: DATETIME
+                Time of failed login attempt
+    """
     id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(120), index=True)
+    email = db.Column(db.String(150), index=True)
     ip = db.Column(db.String(45), index=True)
     user_agent = db.Column(db.String(255))
     created_at = db.Column(db.DateTime, index=True, nullable=False, server_default=db.func.now())
@@ -21,6 +36,7 @@ class FailedLogin(db.Model):
 
     @staticmethod
     def record_failed_login(email, ip, user_agent):
+        """Adds failed login entry to table"""
         try:
             failed_login = FailedLogin(email=email, ip=ip, user_agent=user_agent)
             db.session.add(failed_login)
@@ -32,35 +48,24 @@ class FailedLogin(db.Model):
 
     @staticmethod
     def recent_failures_for_email(email):
+        """Find failed login by email"""
         since = datetime.utcnow() - FailedLogin.WINDOW
         return FailedLogin.query.filter(FailedLogin.email == email,
                                         FailedLogin.created_at >= since).count()
 
     @staticmethod
     def recent_failures_for_ip(ip):
+        """Find failed login by ip address"""
         since = datetime.utcnow() - FailedLogin.WINDOW
         return FailedLogin.query.filter(FailedLogin.ip == ip,
                                         FailedLogin.created_at >= since).count()
 
     @staticmethod
     def recent_global_failures():
+        """Finds all recent login failures"""
         since = datetime.utcnow() - FailedLogin.WINDOW
         return FailedLogin.query.filter(FailedLogin.created_at >= since).count()
 
-    @staticmethod
-    def apply_adaptive_friction(user, email, ip):
-        # Base exponential backoff
-        base_delay = min(2 ** user.failed_attempts, 8)
-
-        # Add extra delay if suspicious
-        if FailedLogin.recent_failures_for_ip(ip) >= FailedLogin.IP_FAIL_THRESHOLD:
-            base_delay += 5
-        if FailedLogin.recent_failures_for_email(email) >= FailedLogin.ACCOUNT_FAIL_THRESHOLD:
-            base_delay += 5
-        if FailedLogin.recent_global_failures() >= FailedLogin.GLOBAL_FAIL_THRESHOLD:
-            base_delay += 10
-
-        time.sleep(base_delay)
 
     @staticmethod
     def fetch_all_failed_logins():

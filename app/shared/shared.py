@@ -8,7 +8,8 @@ from wtforms.validators import ValidationError
 from app.auth.form_errors import RegistrationFormError
 from app.extensions import mail
 
-def breached_password_validator(field):
+def breached_password_validator(self, field):
+    """Checks if password is part of the 10,000 breached passwords"""
     password = field.data
     hashed_pass = hashlib.sha1(password.encode('utf-8')).hexdigest().upper()
     prefix, suffix = hashed_pass[:5], hashed_pass[5:]
@@ -25,10 +26,7 @@ def breached_password_validator(field):
 
 
 def send_email(subject, recipients, body, html=None):
-    """
-        Generic email sending function.
-        Works with Flask application factory and Flask-Mail.
-        """
+    """ Generic email sending function."""
     msg = Message(
         subject=subject,
         recipients=recipients,
