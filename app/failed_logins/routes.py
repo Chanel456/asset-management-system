@@ -9,6 +9,7 @@ from app.models.failed_login import FailedLogin
 @login_required
 def all_failed_logins():
     """Renders the html for the grid to view all failed logins"""
+
     #Checks if the current user
     if not current_user.is_admin:
         render_template('error/cannot-view-this-resource.html', user=current_user)

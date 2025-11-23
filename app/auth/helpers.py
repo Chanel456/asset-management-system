@@ -10,6 +10,7 @@ from app.shared.shared import send_email
 
 
 def generate_reset_token(user):
+    """Generates a reset token """
     serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
     logging.info(user.password)
     return serializer.dumps(
@@ -18,6 +19,7 @@ def generate_reset_token(user):
     )
 
 def verify_reset_token(token, expiration=3600):
+    """Verifies the token has not expired when the user tries to reset their email"""
     serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
     try:
         data = serializer.loads(token, salt='password-reset', max_age=3600)
@@ -56,6 +58,7 @@ def send_password_reset_email(user):
     send_email(subject, [user.email], body, html)
 
 def check_and_alert_stuffing(ip, email):
+    """Monitors recent failed login attempts anf alerts administrators when thresholds are exceeded"""
     ip_failures = FailedLogin.recent_failures_for_ip(ip)
     account_failures = FailedLogin.recent_failures_for_email(email)
     global_failures = FailedLogin.recent_global_failures()
@@ -86,6 +89,8 @@ def check_and_alert_stuffing(ip, email):
         logging.warning("Global brute force/credential stuffing suspected")
 
 def apply_adaptive_friction(user, email, ip):
+    """Delays logins after unsuccessful attempts"""
+
     # Base exponential backoff
     base_delay = min(2 ** user.failed_attempts, 8)
 
@@ -100,6 +105,7 @@ def apply_adaptive_friction(user, email, ip):
     time.sleep(base_delay)
 
 def log_failure(email, reason):
+    """Logs login failures and records them in failed login table"""
     FailedLogin.record_failed_login(email, request.remote_addr, request.user_agent.string)
     check_and_alert_stuffing(request.remote_addr, email)
     logging.warning(

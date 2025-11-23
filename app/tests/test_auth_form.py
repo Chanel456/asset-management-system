@@ -7,7 +7,7 @@ from app.auth.forms import LoginForm, RegistrationForm
 def test_password_validator_passes(init_user_table, app):
     with app.app_context():
         with app.test_request_context():
-            form = LoginForm(data={'login_email': 'test.user1@gmail.com', 'login_password': '#Password12345'})
+            form = LoginForm(data={'login_email': 'test.user1@gmail.com', 'login_password': '54321drwsP#'})
             form.validate_login_password(form.login_password)
             assert len(form.login_password.errors) == 0
 
@@ -37,19 +37,19 @@ def test_email_validator_fails(app):
 def test_registration_form_validation_passes(app):
     with app.app_context():
         with app.test_request_context():
-            form = RegistrationForm(data={'account_type': 'regular', 'email': 'test.user1@gmail.com', 'first_name': 'Hello', 'last_name': "Williams", 'password': '#Password1234', 'confirm_password': '#Password1234'})
+            form = RegistrationForm(data={'account_type': 'regular', 'email': 'test.user1@gmail.com', 'first_name': 'Hello', 'last_name': "Williams", 'password': '54321drwsP#', 'confirm_password': '54321drwsP#'})
             assert form.validate() == True
 
 def test_registration_form_validation_fails(app):
     with app.app_context():
         with app.test_request_context():
-            form = RegistrationForm( data={'account_type': 'regular', 'email': 'test.user1@', 'first_name': 'Hello', 'last_name': "Williams", 'password': '#Password34', 'confirm_password': '#Password14'})
+            form = RegistrationForm( data={'account_type': 'regular', 'email': 'test.user1@', 'first_name': 'Hello', 'last_name': "Williams", 'password': '54321drwsP#', 'confirm_password': '#Password14'})
             assert form.validate() == False
 
 def test_login_form_validation_passes(app, init_user_table):
     with app.app_context():
         with app.test_request_context():
-            form = LoginForm(data={'login_email': 'test.user1@gmail.com', 'login_password': '#Password12345'})
+            form = LoginForm(data={'login_email': 'test.user1@gmail.com', 'login_password': '54321drwsP#'})
             assert form.validate() == True
 
 def test_login_form_validation_fails(app, init_user_table):

@@ -11,6 +11,7 @@ from config.test_config import TestConfig
 def app():
     app = create_app(TestConfig)
     with app.app_context():
+        db.drop_all()
         db.create_all()
         yield app
         db.session.remove()
@@ -63,11 +64,11 @@ def auth(client):
 def init_user_table(app):
     with app.app_context():
         user1 = User(first_name='Testuser1', last_name='Smith', email='test.user1@gmail.com',
-                     password=generate_password_hash('#Password12345', method='scrypt'), is_admin=True)
+                     password=generate_password_hash('54321drwsP#', method='scrypt'), is_admin=True)
         user2 = User(first_name='Testuser2', last_name='Jones', email='test.user2@gmail.com',
-                     password=generate_password_hash('#Password5678', method='scrypt'), is_admin=True)
+                     password=generate_password_hash('54321drwsP#', method='scrypt'), is_admin=True)
         user3 = User(first_name='testuser3', last_name='Davis', email='test.user3@gmail.com',
-                     password=generate_password_hash('#Password1357', method='scrypt'), is_admin=True)
+                     password=generate_password_hash('54321drwsP#', method='scrypt'), is_admin=True)
         db.session.add(user1)
         db.session.add(user2)
         db.session.add(user3)

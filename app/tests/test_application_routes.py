@@ -3,8 +3,8 @@ from flask_login import current_user
 from app.models.application import Application
 
 def test_create(client, app, auth, init_server_table):
-    auth.register('Test', 'Smith', 'test@gmail.com', '#Password12345', '#Password12345', 'regular')
-    auth.login('test@gmail.com', '#Password12345')
+    auth.register('Test', 'Smith', 'test@gmail.com', '54321drwsP#', '54321drwsP#', 'regular')
+    auth.login('test@gmail.com', '54321drwsP#')
 
     with client:
         with app.app_context():
@@ -19,8 +19,8 @@ def test_create(client, app, auth, init_server_table):
 
 
 def test_update(client, app, auth, init_server_table):
-    auth.register('Test', 'Smith', 'test@gmail.com', '#Password12345', '#Password12345', 'regular')
-    auth.login('test@gmail.com', '#Password12345')
+    auth.register('Test', 'Smith', 'test@gmail.com', '54321drwsP#', '54321drwsP#', 'regular')
+    auth.login('test@gmail.com', '54321drwsP#')
 
     client.post('/application/create',
                     data={'name': 'Example App', 'team_name': 'Team', 'team_email': 'team@gmail.com',
@@ -46,8 +46,8 @@ def test_update(client, app, auth, init_server_table):
 
 
 def test_delete_admin_passes(client, app, auth, init_server_table):
-    auth.register('Test', 'Smith', 'test@gmail.com', '#Password12345', '#Password12345', 'admin')
-    auth.login('test@gmail.com', '#Password12345')
+    auth.register('Test', 'Smith', 'test@gmail.com', '54321drwsP#', '54321drwsP#', 'admin')
+    auth.login('test@gmail.com', '54321drwsP#')
 
     client.post('/application/create',
                 data={'name': 'Example App', 'team_name': 'Team', 'team_email': 'team@gmail.com',
@@ -67,8 +67,8 @@ def test_delete_admin_passes(client, app, auth, init_server_table):
 
 
 def test_delete_regular_fails(client, app, auth, init_server_table):
-    auth.register('Test', 'Smith', 'test@gmail.com', '#Password12345', '#Password12345', 'regular')
-    auth.login('test@gmail.com', '#Password12345')
+    auth.register('Test', 'Smith', 'test@gmail.com', '54321drwsP#', '54321drwsP#', 'regular')
+    auth.login('test@gmail.com', '54321drwsP#')
 
     client.post('/application/create',
                 data={'name': 'Example App', 'team_name': 'Team', 'team_email': 'team@gmail.com',
