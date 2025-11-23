@@ -2,7 +2,7 @@ import secrets
 
 DB_NAME = 'database.db'
 
-class Config:
+class ProdConfig:
     TESTING = False
     SECRET_KEY = secrets.token_urlsafe(24)
     SQLALCHEMY_DATABASE_URI = f'sqlite:///{DB_NAME}'
@@ -10,7 +10,10 @@ class Config:
     REMEMBER_COOKIE_DURATION = 0
     SESSION_PERMANENT = False
     SESSION_TYPE = 'sqlalchemy'
-    MAIL_SERVER = 'localhost'
+    MAIL_SERVER = 'smtp.pythonanywhere.com'
     MAIL_PORT = 25
-    MAIL_SUPPRESS_SEND = True
-    MAIL_DEFAULT_SENDER = 'test@example.com'
+    MAIL_USE_TLS = False
+    MAIL_USE_SSL = False
+    MAIL_USERNAME = None
+    MAIL_PASSWORD = None
+    MAIL_DEFAULT_SENDER = 'noreply@pythonanywhere.com'

@@ -1,8 +1,10 @@
 import logging
-from flask import render_template, request, flash, redirect, url_for
+from flask import render_template, request, flash, redirect, url_for, session
 from flask_login import login_user, login_required, logout_user, current_user
 
-from app.auth.forms import RegistrationForm, LoginForm
+from app.auth.forms import RegistrationForm, LoginForm, ForgotPasswordForm, ResetPasswordForm
+from app.auth.helpers import verify_reset_token, send_password_reset_email
+from app.models.failed_login import FailedLogin
 from app.models.user import User
 from app.auth import auth
 
@@ -19,11 +21,13 @@ def login():
         user = User.find_user_by_email(form.login_email.data)
         if user:
             if form.validate_on_submit():
-                   login_user(user, remember = True)
-                   logging.info('%s logged in successfully', user.email)
-                   flash('Logged in successfully.', category='success')
-                   return redirect(url_for('views.dashboard'))
+                session.clear()
+                login_user(user, remember = False)
+                logging.info('%s logged in successfully', user.email)
+                flash('Logged in successfully.', category='success')
+                return redirect(url_for('views.dashboard'))
         else:
+            FailedLogin.record_failed_login(form.login_email.data, request.remote_addr, request.user_agent.string)
             flash('There is no account linked with this email address. Please create an account', category='error')
 
     return render_template('auth/login.html', user=current_user, form=form)
@@ -34,6 +38,7 @@ def logout():
     """Logout a user and redirect to the login page"""
     logging.info('User: %s successfully logged out', current_user.email)
     logout_user()
+    session.clear()
     return redirect(url_for('auth.login'))
 
 @auth.route('/register', methods=['GET', 'POST'])
@@ -52,3 +57,36 @@ def register():
         return redirect(url_for('auth.login'))
 
     return render_template('auth/register.html', user=current_user, form=form)
+
+@auth.route('/forgot-password', methods=['GET', 'POST'])
+def forgot():
+    # redirects the user to the dashboard if they are already logged in
+    if current_user.is_authenticated:
+        return redirect(url_for('views.dashboard'))
+
+    form = ForgotPasswordForm()
+    user = User.find_user_by_email(form.email.data)
+
+    if user:
+        send_password_reset_email(user)
+        flash("If that email exists, we have sent a password reset link.", category='success')
+
+    return render_template('auth/forgot-password.html', user=current_user, form=form)
+
+@auth.route('/reset-password/<token>', methods=['GET', 'POST'])
+def reset(token):
+    #redirects the user to the dashboard if they are already logged in
+    if current_user.is_authenticated:
+        return redirect(url_for('views.dashboard'))
+
+    form = ResetPasswordForm()
+    email = verify_reset_token(token)
+    if not email:
+        flash('Invalid or expired token', category='error')
+        return redirect(url_for('auth.forgot'))
+
+    if request.method == 'POST' and form.validate_on_submit():
+        User.update_password(email, form.password.data)
+        return redirect(url_for('auth.login'))
+
+    return render_template('auth/reset-password.html', user=current_user, form=form, token=token)

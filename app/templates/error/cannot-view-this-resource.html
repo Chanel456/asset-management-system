@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="h-100 d-flex align-items-center justify-content-center my-5">
+    <div>
+        <p>OOPS! It looks like you do not have enough privileges to view this page</p>
+        <p>Go back to the <a href="{{url_for('views.dashboard')}}">dashboard</a></p>
+    </div>
+</div>
+
+{% endblock %}

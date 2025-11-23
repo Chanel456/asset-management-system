@@ -2,38 +2,36 @@ import logging
 
 from flask import Flask, render_template, url_for
 from flask_login import LoginManager, current_user
-from flask_sqlalchemy import SQLAlchemy
 from os import path
 
 from werkzeug.utils import redirect
 
+from app.extensions import db, init_extensions
 
-from config.config import Config
-
-db = SQLAlchemy()
 DB_NAME = 'database.db'
 
-def create_app(config_class=Config):
+def create_app(config_class):
     """Initialises the flask app with config, registers the blueprints and, initialises the login manager """
 
     app = Flask(__name__)
     app.config.from_object(config_class)
+    init_extensions(app)
 
     logging.basicConfig(level= logging.INFO, format = f'%(asctime)s - %(levelname)s : %(message)s')
-
-    db.init_app(app)
 
     #Import routes
     from app.views import views
     from app.auth import auth
     from app.application import application
     from app.server import server
+    from app.failed_logins import failed_logins
 
     #Register blueprints
     app.register_blueprint(views, url_prefix='/views')
     app.register_blueprint(auth, url_prefix='/auth')
     app.register_blueprint(application, url_prefix='/application')
     app.register_blueprint(server, url_prefix='/server')
+    app.register_blueprint(failed_logins, url_prefix='/failed-logins')
 
     @app.route('/')
     def redirect_to_home():

@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container mt-2">
+    <div class="bg-light rounded">
+        <div class="row">
+            <h2>View Failed Logins</h2>
+        </div>
+        <table id="failedLoginsTable" class="display table table-hover table-striped table-light no-wrap">
+            <thead class="table-dark">
+            <tr>
+                <th></th>
+                <th>Email</th>
+                <th>IP Address</th>
+                <th>User Agent</th>
+                <th>Time</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for login in failed_login %}
+            <tr>
+                <td></td>
+                <td>{{login.email}}</td>
+                <td>{{login.ip}}</td>
+                <td>{{login.user_agent}}</td>
+                <td>{{login.created_at}}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+</div>
+{% endblock %}

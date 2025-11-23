@@ -5,8 +5,7 @@ from wtforms.validators import ValidationError
 from app.application.form_errors import ApplicationFormError
 from app.application.forms import ApplicationForm
 from app.models.server import Server
-from app.shared.shared import FormType
-
+from app.shared.form_type_enum import FormType
 
 def test_application_form_passes(app, init_server_table):
     with app.app_context():

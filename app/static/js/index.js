@@ -113,6 +113,25 @@ var table2 = $('#serverTable').DataTable({
       }
 })
 
+var table3 = $('#failedLoginsTable').DataTable({
+    layout: {
+            topStart: {
+                buttons: [
+                    {
+                        extend: 'excelHtml5',
+                        exportOptions: {
+                            columns: [0,1,2,3]
+                        },
+                        title:'Asset Management System - Servers',
+                        text: 'Export to Excel'
+                    }
+                ]
+            },
+            topEnd: 'search',
+            bottom: ['info', 'pageLength', 'paging']
+      }
+})
+
 const textarea = document.getElementById('extra_info');
 const charCount = document.getElementById('charCount');
 const maxLength = textarea.getAttribute('maxlength');
