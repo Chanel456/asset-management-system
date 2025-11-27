@@ -1,6 +1,4 @@
-import logging
-
-from flask import flash
+from flask import flash, current_app
 from sqlalchemy.exc import SQLAlchemyError
 from werkzeug.security import generate_password_hash
 
@@ -44,8 +42,12 @@ class User(db.Model, UserMixin):
             user = User.query.filter_by(email=email).first()
             return user
         except SQLAlchemyError as err:
-            logging.error('An error was encountered whilst filtering the User table by email: %s', email)
-            logging.error(err)
+            current_app.logger.error(
+                f'An error was encountered whilst filtering the User table by email: {email}',
+                extra={
+                    "error": str(err),
+                    "error_type": type(err).__name__,
+                })
 
     @staticmethod
     def add_user(email, first_name, last_name, password, is_admin):
@@ -57,13 +59,16 @@ class User(db.Model, UserMixin):
             db.session.commit()
         except SQLAlchemyError as err:
             db.session.rollback()
-            logging.error('Unable to register user: %s', email)
-            logging.error(err)
+            current_app.logger.error(
+                f'Unable to register user: {email}',
+                extra={
+                    "error": str(err),
+                    "error_type": type(err).__name__,
+                })
             flash('Unable to register user', category='error')
         else:
-            logging.info('%s account created successfully', email)
+            current_app.logger.info(f'{email} account created successfully')
             flash('Account created successfully!', category='success')
-
     @staticmethod
     def update_password(email, password):
         """Updates users password"""
@@ -73,9 +78,13 @@ class User(db.Model, UserMixin):
             db.session.commit()
         except SQLAlchemyError as err:
             db.session.rollback()
-            logging.error('Unable to update password for user: %s', email)
-            logging.error(err)
+            current_app.logger.error(
+                f'Unable to update password for user: {email}',
+                extra={
+                    "error": str(err),
+                    "error_type": type(err).__name__,
+                })
             flash('Unable to update password', category='error')
         else:
-            logging.info('%s password updated successfully', email)
+            current_app.logger.info(f'{email} password updated successfully')
             flash('Password updated successfully!', category='success')

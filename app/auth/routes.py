@@ -1,5 +1,4 @@
-import logging
-from flask import render_template, request, flash, redirect, url_for, session
+from flask import render_template, request, flash, redirect, url_for, session, current_app
 from flask_login import login_user, login_required, logout_user, current_user
 
 from app.auth.forms import RegistrationForm, LoginForm, ForgotPasswordForm, ResetPasswordForm
@@ -23,7 +22,9 @@ def login():
             if form.validate_on_submit():
                 session.clear()
                 login_user(user, remember = False)
-                logging.info('%s logged in successfully', user.email)
+                current_app.logger.info(
+                    f'login_success user: {user.email}'
+                )
                 flash('Logged in successfully.', category='success')
                 return redirect(url_for('views.dashboard'))
         else:
@@ -36,7 +37,7 @@ def login():
 @login_required
 def logout():
     """Logout a user and redirect to the login page"""
-    logging.info('User: %s successfully logged out', current_user.email)
+    current_app.logger.info(f'Logout success user: {current_user.email}')
     logout_user()
     session.clear()
     return redirect(url_for('auth.login'))

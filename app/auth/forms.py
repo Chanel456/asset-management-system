@@ -9,7 +9,7 @@ from wtforms.validators import DataRequired, ValidationError
 
 from app import db
 from app.auth.form_errors import LoginFormErrors, RegistrationFormError
-from app.auth.helpers import log_failure
+from app.auth.helpers import log_login_failure
 from app.models.user import User
 from app.shared.general_form_error_enum import GeneralFormError
 from app.shared.shared import breached_password_validator
@@ -87,7 +87,7 @@ class LoginForm(FlaskForm):
             db.session.commit()
         elif user and not check_password_hash(user.password, field.data):
             user.failed_attempts += 1
-            log_failure(self.login_email.data, LoginFormErrors.INCORRECT_PASSWORD.value)
+            log_login_failure(self.login_email.data, LoginFormErrors.INCORRECT_PASSWORD.value)
             db.session.commit()
             raise ValidationError(LoginFormErrors.INCORRECT_EMAIL_OR_PASSWORD.value)
 

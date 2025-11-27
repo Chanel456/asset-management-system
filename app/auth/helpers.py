@@ -1,7 +1,6 @@
-import logging
 import time
 
-from flask import current_app, redirect, url_for, flash, request
+from flask import current_app, redirect, url_for, flash, request, session
 from itsdangerous import URLSafeTimedSerializer
 
 from app.models.failed_login import FailedLogin
@@ -12,7 +11,6 @@ from app.shared.shared import send_email
 def generate_reset_token(user):
     """Generates a reset token """
     serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
-    logging.info(user.password)
     return serializer.dumps(
         {'email': user.email, 'pw_hash': user.password},
         salt='password-reset'
@@ -24,7 +22,12 @@ def verify_reset_token(token, expiration=3600):
     try:
         data = serializer.loads(token, salt='password-reset', max_age=3600)
     except Exception as err:
-        logging.error(f'Invalid or expired reset token: {err}')
+        current_app.logger.error(
+            'Invalid or expired reset token',
+            extra={
+                "error": str(err),
+                "error_type": type(err).__name__,
+            })
         return redirect(url_for('auth.forgot'))
 
     email = data.get("email")
@@ -32,7 +35,7 @@ def verify_reset_token(token, expiration=3600):
 
     user = User.find_user_by_email(email)
     if not user:
-        logging.error('Reset token refers to unknown user.')
+        current_app.logger.error('Reset token refers to unknown user.')
         return redirect(url_for('auth.forgot'))
 
     # Invalidate token automatically if password was changed
@@ -49,7 +52,6 @@ def send_password_reset_email(user):
     token = generate_reset_token(user)
 
     reset_url = url_for("auth.reset", token=token, _external=True)
-    logging.info(reset_url)
 
     subject = 'Password Reset Request'
     body = f'To reset your password, click the following link:\n{reset_url}'
@@ -66,27 +68,28 @@ def check_and_alert_stuffing(ip, email):
     if ip_failures >= FailedLogin.IP_FAIL_THRESHOLD:
 
         send_email(
-            subject="Credential Stuffing Alert",
-            recipients=["security-team@yourcompany.com"],
-            body=f"High number of failures from IP {ip}: {ip_failures} in 5 minutes."
+            subject='Credential Stuffing Alert',
+            recipients=['security-team@yourcompany.com'],
+            body=f'High number of failures from IP {ip}: {ip_failures} in 5 minutes.'
         )
-        logging.warning(f"Credential stuffing suspected from IP {ip}")
+        current_app.logger.warning(f'Credential stuffing suspected from IP {ip}')
 
     elif account_failures >= FailedLogin.ACCOUNT_FAIL_THRESHOLD:
         send_email(
-            subject="Brute Force Alert",
-            recipients=["security-team@yourcompany.com"],
-            body=f"Account {email} had {account_failures} failed logins in 5 minutes."
+            subject='Brute Force Alert',
+            recipients=['security-team@yourcompany.com'],
+            body=f'Account {email} had {account_failures} failed logins in 5 minutes.'
         )
-        logging.warning(f"Brute force suspected on account {email}")
+        current_app.logger.warning(f'Brute force suspected on account {email}')
 
     elif global_failures >= FailedLogin.GLOBAL_FAIL_THRESHOLD:
         send_email(
-            subject="Global Attack Alert",
-            recipients=["security-team@yourcompany.com"],
-            body=f"System-wide failures: {global_failures} in 5 minutes."
+            subject='Global Attack Alert',
+            recipients=['security-team@yourcompany.com' ],
+            body=f'System-wide failures: {global_failures} in 5 minutes.'
         )
-        logging.warning("Global brute force/credential stuffing suspected")
+        current_app.logger.warning('Global brute force/credential stuffing suspected')
+
 
 def apply_adaptive_friction(user, email, ip):
     """Delays logins after unsuccessful attempts"""
@@ -104,11 +107,9 @@ def apply_adaptive_friction(user, email, ip):
 
     time.sleep(base_delay)
 
-def log_failure(email, reason):
+def log_login_failure(email, reason):
     """Logs login failures and records them in failed login table"""
     FailedLogin.record_failed_login(email, request.remote_addr, request.user_agent.string)
     check_and_alert_stuffing(request.remote_addr, email)
-    logging.warning(
-        f'Login failure | email={email} | ip={request.remote_addr} '
-        f'| user_agent={request.user_agent.string} | reason={reason}'
-    )
+    current_app.logger.warning(f'Login failure for email: {email}. Reason: {reason}')
+

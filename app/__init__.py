@@ -1,12 +1,14 @@
-import logging
+import uuid
 
-from flask import Flask, render_template, url_for
+from flask import Flask, render_template, url_for, g, request, current_app
 from flask_login import LoginManager, current_user
 from os import path
 
 from werkzeug.utils import redirect
 
 from app.extensions import db, init_extensions
+
+from app.shared.logging import configure_logging
 
 DB_NAME = 'database.db'
 
@@ -17,7 +19,7 @@ def create_app(config_class):
     app.config.from_object(config_class)
     init_extensions(app)
 
-    logging.basicConfig(level= logging.INFO, format = f'%(asctime)s - %(levelname)s : %(message)s')
+    configure_logging(app)
 
     #Import routes
     from app.views import views
@@ -41,19 +43,36 @@ def create_app(config_class):
     @app.errorhandler(404)
     def handle_not_found_error(err):
         """Redirects to 404.html if a HTTP 404 error is thrown"""
+        current_app.logger.warning(
+            "http:404_not_found",
+            extra={
+                "error": str(err),
+                "error_type": type(err).__name__
+            })
         return render_template('error/404.html', user=current_user), 404
 
     @app.errorhandler(500)
     def handle_internal_server_error(err):
         """Redirects to 500.html if a 500 error is thrown"""
+        app.logger.error(f"uncaught_exception type={type(err).__name__} message={str(err)}")
         return render_template('error/500.html', user=current_user), 500
+
+    @app.before_request
+    def assign_request_id():
+        g.request_id = str(uuid.uuid4())
+        app.logger.info(f"request:start path={request.path} method={request.method}")
+
+    @app.after_request
+    def log_response(resp):
+        app.logger.info(f"request:end status={resp.status_code}")
+        return resp
 
     from app.models.user import User
 
     with app.app_context():
         if not path.exists('app/' + DB_NAME):
             db.create_all()
-            logging.info('Database created')
+            current_app.logger.info('Database created')
 
     # Initialise login manager
     login_manager = LoginManager()

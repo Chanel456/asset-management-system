@@ -1,6 +1,4 @@
-import logging
-
-from flask import flash
+from flask import flash, current_app
 from sqlalchemy import event
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -39,8 +37,12 @@ class Server (db.Model):
             result = Server.query.with_entities(entity)
             return result
         except SQLAlchemyError as err:
-            logging.error('An error occurred whilst querying the server table with entity: %s', entity)
-            logging.error(err)
+            current_app.logger.error(
+                f'An error occurred whilst querying the server table with entity: {entity}',
+                extra={
+                    "error": str(err),
+                    "error_type": type(err).__name__,
+                })
 
     @staticmethod
     def find_server_by_id(server_id):
@@ -49,8 +51,12 @@ class Server (db.Model):
             retrieved_server = Server.query.get(server_id)
             return retrieved_server
         except SQLAlchemyError as err:
-            logging.error('An error occurred whilst finding server by id: %s', server_id)
-            logging.error(err)
+            current_app.logger.error(
+                f'An error occurred whilst finding server by id: {server_id}',
+                extra={
+                    "error": str(err),
+                    "error_type": type(err).__name__,
+                })
 
     @staticmethod
     def find_server_by_name(name):
@@ -59,8 +65,12 @@ class Server (db.Model):
             retrieved_server = Server.query.filter_by(name=name).first()
             return retrieved_server
         except SQLAlchemyError as err:
-            logging.error('An error occurred whilst finding server by name: %s', name)
-            logging.error(err)
+            current_app.logger.error(
+                f'An error occurred whilst finding server by name: {name}',
+                extra={
+                    "error": str(err),
+                    "error_type": type(err).__name__,
+                })
 
     @staticmethod
     def fetch_all_servers():
@@ -69,8 +79,12 @@ class Server (db.Model):
             servers = db.session.query(Server).all()
             return servers
         except SQLAlchemyError as err:
-            logging.error('An error occurred whilst fetching all rows in the server table')
-            logging.error(err)
+            current_app.logger.error(
+                'An error occurred whilst fetching all rows in the server table',
+                extra={
+                    "error": str(err),
+                    "error_type": type(err).__name__,
+                })
 
     @staticmethod
     def create_server(name, cpu, memory, location):
@@ -81,11 +95,15 @@ class Server (db.Model):
             db.session.commit()
         except SQLAlchemyError as err:
             db.session.rollback()
-            logging.error('Unable to create server: %s', name)
-            logging.error(err)
+            current_app.logger.error(
+                f'Unable to create server: {name}',
+                extra={
+                    "error": str(err),
+                    "error_type": type(err).__name__,
+                })
             flash('Unable to create server', category='error')
         else:
-            logging.info('Server %s added successfully', name)
+            current_app.logger.info(f'Server {name} added successfully',)
             flash('Server added successfully', category='success')
 
     @staticmethod
@@ -96,11 +114,15 @@ class Server (db.Model):
             db.session.commit()
         except SQLAlchemyError as err:
             db.session.rollback()
-            logging.error('An error was encountered when updating application with id: %s', server_id)
-            logging.error(err)
+            current_app.logger.error(
+                f'An error was encountered when updating server with id: {server_id}',
+                extra={
+                    "error": str(err),
+                    "error_type": type(err).__name__,
+                })
             flash('Unable to update server', category='error')
         else:
-            logging.info('Server: %s successfully updated', updated_server['name'])
+            current_app.logger.info(f'Server: {updated_server['name']} successfully updated',)
             flash('Server successfully updated', category='success')
 
     @staticmethod
@@ -111,11 +133,15 @@ class Server (db.Model):
             db.session.commit()
         except SQLAlchemyError as err:
             db.session.rollback()
-            logging.error('An error was encountered when deleting server with id: %s', server.id)
-            logging.error(err)
+            current_app.logger.error(
+                f'An error was encountered when deleting server with id: {server.id}',
+                extra={
+                    "error": str(err),
+                    "error_type": type(err).__name__,
+                })
             flash('Unable to delete server', category='error')
         else:
-            logging.info('Server: %s deleted successfully', server.name)
+            current_app.logger.info(f'Server: {server.name} deleted successfully',)
             flash('Server deleted successfully', category='success')
 
 
@@ -137,5 +163,9 @@ def create_servers(*args, **kwargs):
         db.session.commit()
     except SQLAlchemyError as err:
         db.session.rollback()
-        logging.error('Unable to add dummy data to Server table on database creation')
-        logging.error(err)
+        current_app.logger.error(
+            'Unable to add dummy data to Server table on database creation',
+            extra={
+                "error": str(err),
+                "error_type": type(err).__name__,
+            })
