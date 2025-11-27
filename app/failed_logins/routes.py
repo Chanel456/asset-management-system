@@ -1,4 +1,4 @@
-from flask import render_template
+from flask import render_template, current_app
 from flask_login import login_required, current_user
 
 from app.failed_logins import failed_logins
@@ -12,6 +12,9 @@ def all_failed_logins():
 
     #Checks if the current user
     if not current_user.is_admin:
+        current_app.logger.warning(
+            f'Access_denied user:{current_user.email} cannot view /all-failed-logins resource'
+        )
         render_template('error/cannot-view-this-resource.html', user=current_user)
 
     failed_login = FailedLogin.fetch_all_failed_logins()

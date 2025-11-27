@@ -1,6 +1,6 @@
-import logging
 from datetime import timedelta, datetime
 
+from flask import current_app
 from sqlalchemy import event
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -43,28 +43,55 @@ class FailedLogin(db.Model):
             db.session.commit()
         except SQLAlchemyError as err:
             db.session.rollback()
-            logging.error('An error was encountered when saving failed login attempt for email: %s', email)
-            logging.error(err)
+            current_app.logger.error(
+                f'An error was encountered when saving failed login attempt for email: {email}',
+                extra={
+                    "error": str(err),
+                    "error_type": type(err).__name__,
+                })
 
     @staticmethod
     def recent_failures_for_email(email):
         """Find failed login by email"""
         since = datetime.utcnow() - FailedLogin.WINDOW
-        return FailedLogin.query.filter(FailedLogin.email == email,
-                                        FailedLogin.created_at >= since).count()
+        try:
+            return FailedLogin.query.filter(FailedLogin.email == email,FailedLogin.created_at >= since).count()
+        except SQLAlchemyError as err:
+            current_app.logger.error(
+                f'An error occurred whilst fetching all recent failures for email : {email}',
+                extra={
+                    "error": str(err),
+                    "error_type": type(err).__name__,
+                })
+
 
     @staticmethod
     def recent_failures_for_ip(ip):
         """Find failed login by ip address"""
         since = datetime.utcnow() - FailedLogin.WINDOW
-        return FailedLogin.query.filter(FailedLogin.ip == ip,
-                                        FailedLogin.created_at >= since).count()
+        try:
+            return FailedLogin.query.filter(FailedLogin.ip == ip, FailedLogin.created_at >= since).count()
+        except SQLAlchemyError as err:
+            current_app.logger.error(
+                f'An error occurred whilst fetching all failures for ip address : {ip}',
+                extra={
+                    "error": str(err),
+                    "error_type": type(err).__name__,
+                })
 
     @staticmethod
     def recent_global_failures():
         """Finds all recent login failures"""
         since = datetime.utcnow() - FailedLogin.WINDOW
-        return FailedLogin.query.filter(FailedLogin.created_at >= since).count()
+        try:
+            return FailedLogin.query.filter(FailedLogin.created_at >= since).count()
+        except SQLAlchemyError as err:
+            current_app.logger.error(
+                'An error occurred whilst fetching all recent global failures',
+                extra={
+                    "error": str(err),
+                    "error_type": type(err).__name__,
+                })
 
 
     @staticmethod
@@ -74,8 +101,12 @@ class FailedLogin(db.Model):
             failed_logins = db.session.query(FailedLogin).all()
             return failed_logins
         except SQLAlchemyError as err:
-            logging.error('An error occurred whilst fetching all rows in the failed login table')
-            logging.error(err)
+            current_app.logger.error(
+                'An error occurred whilst fetching all rows in the failed login table',
+                extra={
+                    "error": str(err),
+                    "error_type": type(err).__name__,
+                })
 
 @event.listens_for(FailedLogin.__table__, 'after_create')
 def create_failed_logins(*args, **kwargs):
@@ -104,5 +135,9 @@ def create_failed_logins(*args, **kwargs):
         db.session.commit()
     except SQLAlchemyError as err:
         db.session.rollback()
-        logging.error('Unable to add dummy data to Failed table on database creation')
-        logging.error(err)
+        current_app.logger.error(
+            'Unable to add dummy data to Failed table on database creation',
+            extra={
+                "error": str(err),
+                "error_type": type(err).__name__,
+            })

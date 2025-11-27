@@ -1,6 +1,4 @@
-import logging
-
-from flask import flash
+from flask import flash, current_app
 from sqlalchemy import event
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -52,8 +50,12 @@ class Application(db.Model):
             retrieved_application = Application.query.get(id)
             return retrieved_application
         except SQLAlchemyError as err:
-            logging.error('An error occurred whilst filtering the application table by id: %s', id)
-            logging.error(err)
+            current_app.logger.error(
+                f'An error occurred whilst filtering the application table by id: {id}',
+                extra={
+                    "error": str(err),
+                    "error_type": type(err).__name__,
+                })
 
     @staticmethod
     def find_application_by_name(name):
@@ -62,8 +64,12 @@ class Application(db.Model):
             retrieved_application = Application.query.filter_by(name=name).first()
             return retrieved_application
         except SQLAlchemyError as err:
-            logging.error('An error occurred whilst filtering application table by name: %s', name)
-            logging.error(err)
+            current_app.logger.error(
+                f'An error occurred whilst filtering application table by name: {name}',
+                extra={
+                    "error": str(err),
+                    "error_type": type(err).__name__,
+                })
 
     @staticmethod
     def find_application_by_url(url):
@@ -72,8 +78,12 @@ class Application(db.Model):
             retrieved_application = Application.query.filter_by(url=url).first()
             return retrieved_application
         except SQLAlchemyError as err:
-            logging.error('An error occurred whilst filtering application table by url: %s', url)
-            logging.error(err)
+            current_app.logger.error(
+                f'An error occurred whilst filtering application table by url: {url}',
+                extra={
+                    "error": str(err),
+                    "error_type": type(err).__name__,
+                })
 
     @staticmethod
     def find_application_by_bitbucket(bitbucket):
@@ -82,8 +92,12 @@ class Application(db.Model):
             retrieved_application = Application.query.filter_by(bitbucket=bitbucket).first()
             return retrieved_application
         except SQLAlchemyError as err:
-            logging.error('An error occurred whilst filtering application table by bitbucket: %s', bitbucket)
-            logging.error(err)
+            current_app.logger.error(
+                f'An error occurred whilst filtering application table by bitbucket: {bitbucket}',
+                extra={
+                    "error": str(err),
+                    "error_type": type(err).__name__,
+                })
 
     @staticmethod
     def find_application_by_swagger(swagger):
@@ -92,10 +106,12 @@ class Application(db.Model):
             retrieved_application = Application.query.filter_by(swagger=swagger).first()
             return retrieved_application
         except SQLAlchemyError as err:
-            logging.error('An error occurred whilst filtering application table by swagger: %s', swagger)
-            logging.error(err)
-
-
+            current_app.logger.error(
+                f'An error occurred whilst filtering application table by swagger: {swagger}',
+                extra={
+                    "error": str(err),
+                    "error_type": type(err).__name__,
+                })
 
     @staticmethod
     def fetch_all_applications():
@@ -104,8 +120,12 @@ class Application(db.Model):
             applications = db.session.query(Application).all()
             return applications
         except SQLAlchemyError as err:
-            logging.error('An error occurred whilst fetching all rows in the application table')
-            logging.error(err)
+            current_app.logger.error(
+                'An error occurred whilst fetching all rows in the application table',
+                extra={
+                    "error": str(err),
+                    "error_type": type(err).__name__,
+                })
 
     @staticmethod
     def create_application(name, team_name, team_email, url, swagger, bitbucket, production_pods, extra_info, server):
@@ -118,11 +138,15 @@ class Application(db.Model):
             db.session.commit()
         except SQLAlchemyError as err:
             db.session.rollback()
-            logging.error('Unable to create application: %s', name)
-            logging.error(err)
+            current_app.logger.error(
+                f'Unable to create application: {name}',
+                extra={
+                    "error": str(err),
+                    "error_type": type(err).__name__,
+                })
             flash('Unable to create application', category='error')
         else:
-            logging.info('Application %s added successfully', name)
+            current_app.logger.info(f'Application {name} added successfully')
             flash('Application added successfully', category='success')
 
     @staticmethod
@@ -133,11 +157,15 @@ class Application(db.Model):
             db.session.commit()
         except SQLAlchemyError as err:
             db.session.rollback()
-            logging.error('An error was encountered when updating application with id: %s', application_id)
-            logging.error(err)
+            current_app.logger.error(
+                f'An error was encountered when updating application with id: {application_id}',
+                extra={
+                    "error": str(err),
+                    "error_type": type(err).__name__,
+                })
             flash('Unable to update application', category='error')
         else:
-            logging.info('Application: %s successfully updated', updated_application['name'])
+            current_app.logger.info(f'Application: {updated_application['name']} successfully updated',)
             flash('Application successfully updated', category='success')
 
 
@@ -149,11 +177,15 @@ class Application(db.Model):
             db.session.commit()
         except SQLAlchemyError as err:
             db.session.rollback()
-            logging.error('An error was encountered when deleting application with id: %s', application.id)
-            logging.error(err)
+            current_app.logger.error(
+                f'An error was encountered when deleting application with id: {application.id}',
+                extra={
+                    "error": str(err),
+                    "error_type": type(err).__name__,
+                })
             flash('Unable to delete application', category='error')
         else:
-            logging.info('Application: %s deleted successfully', application.name)
+            current_app.logger.info(f'Application: {application.name} deleted successfully',)
             flash('Application deleted successfully', category='success')
 
 
@@ -214,5 +246,9 @@ def create_applications(*args, **kwargs):
         db.session.commit()
     except SQLAlchemyError as err:
         db.session.rollback()
-        logging.error('Unable to add dummy data to Application table on database creation')
-        logging.error(err)
+        current_app.logger.error(
+            'Unable to add dummy data to Application table on database creation',
+            extra={
+                "error": str(err),
+                "error_type": type(err).__name__,
+            })
