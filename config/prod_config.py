@@ -1,6 +1,10 @@
+from dotenv import load_dotenv
 import secrets
+import os
 
 DB_NAME = 'database.db'
+
+load_dotenv('/home/Chanelj/asset-management-system/.env')
 
 class ProdConfig:
     TESTING = False
@@ -10,10 +14,10 @@ class ProdConfig:
     REMEMBER_COOKIE_DURATION = 0
     SESSION_PERMANENT = False
     SESSION_TYPE = 'sqlalchemy'
-    MAIL_SERVER = 'smtp.pythonanywhere.com'
-    MAIL_PORT = 25
-    MAIL_USE_TLS = False
+    MAIL_SERVER = 'smtp.gmail.com'
+    MAIL_PORT = 587
+    MAIL_USE_TLS = True
     MAIL_USE_SSL = False
-    MAIL_USERNAME = None
-    MAIL_PASSWORD = None
-    MAIL_DEFAULT_SENDER = 'noreply@pythonanywhere.com'
+    MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
+    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
+    MAIL_DEFAULT_SENDER = os.environ.get('MAIL_USERNAME')

@@ -165,7 +165,7 @@ class Application(db.Model):
                 })
             flash('Unable to update application', category='error')
         else:
-            current_app.logger.info(f'Application: {updated_application['name']} successfully updated',)
+            current_app.logger.info(f"Application: {updated_application['name']} successfully updated")
             flash('Application successfully updated', category='success')
 
 
