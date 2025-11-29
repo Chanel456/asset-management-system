@@ -122,7 +122,7 @@ class Server (db.Model):
                 })
             flash('Unable to update server', category='error')
         else:
-            current_app.logger.info(f'Server: {updated_server['name']} successfully updated',)
+            current_app.logger.info(f"Server: {updated_server['name']} successfully updated",)
             flash('Server successfully updated', category='success')
 
     @staticmethod
