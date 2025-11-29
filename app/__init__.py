@@ -1,13 +1,13 @@
 import uuid
 
-from flask import Flask, render_template, url_for, g, request, current_app
+from flask import Flask, render_template, url_for, g, request, current_app, jsonify
 from flask_login import LoginManager, current_user
 from os import path
 
 from werkzeug.utils import redirect
 
 from app.extensions import db, init_extensions
-
+from app.info import APP_NAME, APP_VERSION, DEPLOYMENT_TIME, GIT_COMMIT
 from app.shared.logging import configure_logging
 from config.config import Config
 
@@ -57,6 +57,15 @@ def create_app(config_class=Config):
         """Redirects to 500.html if a 500 error is thrown"""
         app.logger.error(f"uncaught_exception type={type(err).__name__} message={str(err)}")
         return render_template('error/500.html', user=current_user), 500
+
+    @app.route('/info')
+    def info():
+        return jsonify({
+            'app': APP_NAME,
+            'version': APP_VERSION,
+            'deployment-time': DEPLOYMENT_TIME,
+            'last_commit': GIT_COMMIT
+        }), 200
 
     @app.before_request
     def assign_request_id():
