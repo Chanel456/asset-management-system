@@ -63,7 +63,7 @@ jobs:
           DEPLOYED_AT=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
           
           cat > app/info.py << EOF
-          APP_NAME = ${{ github.event.repository.name }}
+          APP_NAME = "${{ github.event.repository.name }}"
           APP_VERSION = "${{ steps.bump.outputs.version }}"
           DEPLOYED_AT = "${DEPLOYED_AT}"
           GIT_COMMIT = "${COMMIT_HASH}"
