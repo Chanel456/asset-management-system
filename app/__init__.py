@@ -7,7 +7,7 @@ from os import path
 from werkzeug.utils import redirect
 
 from app.extensions import db, init_extensions
-from app.info import APP_NAME, APP_VERSION, DEPLOYMENT_TIME, GIT_COMMIT
+from app.info import APP_NAME, APP_VERSION, GIT_COMMIT, DEPLOYED_AT
 from app.shared.logging import configure_logging
 from config.config import Config
 
@@ -63,7 +63,7 @@ def create_app(config_class=Config):
         return jsonify({
             'app': APP_NAME,
             'version': APP_VERSION,
-            'deployment-time': DEPLOYMENT_TIME,
+            'deployment-time': DEPLOYED_AT,
             'last_commit': GIT_COMMIT
         }), 200
 
