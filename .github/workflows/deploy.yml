@@ -80,6 +80,16 @@ jobs:
       - name: Zip project
         run: zip -r deploy.zip . -x "*.git*"
 
+      - name: Delete existing project folder on PythonAnywhere
+        run: |
+          pa_host="${{ secrets.PYTHONANYWHERE_HOST }}"
+          username="${{ secrets.PYTHONANYWHERE_USERNAME }}"
+          token="${{ secrets.PYTHONANYWHERE_API_TOKEN }}"
+            
+          curl -X DELETE \
+            "https://$pa_host/api/v0/user/$username/files/path/home/$username/${{ steps.name.outputs.app_name }}/" \
+            -H "Authorization: Token $token"
+
       - name: Upload ZIP to PythonAnywhere
         run: |
           pa_host="${{ secrets.PYTHONANYWHERE_HOST }}"
@@ -91,56 +101,30 @@ jobs:
             -H "Authorization: Token $token" \
             --data-binary @deploy.zip
 
-      - name: Replace code on PythonAnywhere
+      - name: Unzip code on PythonAnywhere & reload web app
         run: |
           pa_host="${{ secrets.PYTHONANYWHERE_HOST }}"
           username="${{ secrets.PYTHONANYWHERE_USERNAME }}"
           token="${{ secrets.PYTHONANYWHERE_API_TOKEN }}"
+          app="${{ secrets.PYTHONANYWHERE_APP_NAME }}"
 
-          echo "Deleting old project folder..."
-          curl -X DELETE \
-            "https://$pa_host/api/v0/user/$username/files/path/home/$username/asset-management-system" \
-            -H "Authorization: Token $token"
-
-          echo "Recreating project folder..."
-          curl -X PUT \
-            "https://$pa_host/api/v0/user/$username/files/path/home/$username/asset-management-system" \
-            -H "Authorization: Token $token"
-
-          echo "Re-uploading deploy.zip..."
           curl -X POST \
-            "https://$pa_host/api/v0/user/$username/files/path/home/$username/asset-management-system/deploy.zip" \
-            -H "Authorization: Token $token" \
-            --data-binary @deploy.zip
-
-          echo "Starting PythonAnywhere console..."
-          console=$(curl -s -X POST \
             "https://$pa_host/api/v0/user/$username/consoles/" \
             -H "Authorization: Token $token" \
             -H "Content-Type: application/json" \
-            --data '{"executable": "/bin/bash"}')
+            --data '{"executable": "bash"}' \
+            > console.json
 
-          CONSOLE_ID=$(echo "$console" | jq -r '.id')
+          CONSOLE_ID=$(jq -r '.id' console.json)
 
-          echo "Unzipping deploy.zip..."
           curl -X POST \
             "https://$pa_host/api/v0/user/$username/consoles/$CONSOLE_ID/send_input/" \
             -H "Authorization: Token $token" \
-            --data "cd ~/asset-management-system && unzip -o deploy.zip"
-
-          echo "Closing console..."
-          curl -X DELETE \
-            "https://$pa_host/api/v0/user/$username/consoles/$CONSOLE_ID/" \
-            -H "Authorization: Token $token"
-
-      - name: Reload web app
-        run: |
-          pa_host="${{ secrets.PYTHONANYWHERE_HOST }}"
-          username="${{ secrets.PYTHONANYWHERE_USERNAME }}"
-          token="${{ secrets.PYTHONANYWHERE_API_TOKEN }}"
-
+            -H "Content-Type: application/json" \
+            --data "unzip -o ~/${{ steps.name.outputs.app_name }}/deploy.zip -d ~/${{ steps.name.outputs.app_name }}/"
+  
           curl -X POST \
-            "https://$pa_host/api/v0/user/$username/webapps/${{ secrets.PYTHONANYWHERE_APP_NAME }}/reload/" \
+            "https://$pa_host/api/v0/user/$username/webapps/$app/reload/" \
             -H "Authorization: Token $token"
 
   smoke_test:
