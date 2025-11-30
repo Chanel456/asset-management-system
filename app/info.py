@@ -1,3 +1,4 @@
+APP_NAME = "asset-management-system"
 APP_VERSION = "0.0.1"
 DEPLOYED_AT = "2025-11-30T00:36:15Z"
 GIT_COMMIT = "406c156"
