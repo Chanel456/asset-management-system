@@ -41,6 +41,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Determine APP_NAME
+        id: app
+        run: |
+          APP_NAME=$(basename "$GITHUB_REPOSITORY")
+          echo "app_name=$APP_NAME" >> $GITHUB_OUTPUT
+
       - name: Bump Version
         id: bump
         run: |
@@ -63,7 +69,7 @@ jobs:
           DEPLOYED_AT=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
           
           cat > app/info.py << EOF
-          APP_NAME = "${{ github.event.repository.name }}"
+          APP_NAME = "${{ steps.app.outputs.app_name }}"
           APP_VERSION = "${{ steps.bump.outputs.version }}"
           DEPLOYED_AT = "${DEPLOYED_AT}"
           GIT_COMMIT = "${COMMIT_HASH}"
@@ -87,7 +93,7 @@ jobs:
           token="${{ secrets.PYTHONANYWHERE_API_TOKEN }}"
             
           curl -X DELETE \
-            "https://$pa_host/api/v0/user/$username/files/path/home/$username/${{ steps.name.outputs.app_name }}/" \
+            "https://$pa_host/api/v0/user/$username/files/path/home/$username/${{ steps.app.outputs.app_name }}/" \
             -H "Authorization: Token $token"
 
       - name: Upload ZIP to PythonAnywhere
@@ -95,13 +101,13 @@ jobs:
           pa_host="${{ secrets.PYTHONANYWHERE_HOST }}"
           username="${{ secrets.PYTHONANYWHERE_USERNAME }}"
           token="${{ secrets.PYTHONANYWHERE_API_TOKEN }}"
-          
+
           curl -X POST \
-            "https://$pa_host/api/v0/user/$username/files/path/home/$username/asset-management-system/deploy.zip" \
+            "https://$pa_host/api/v0/user/$username/files/path/home/$username/${{ steps.app.outputs.app_name }}/deploy.zip" \
             -H "Authorization: Token $token" \
             --data-binary @deploy.zip
 
-      - name: Unzip code on PythonAnywhere & reload web app
+      - name: Unzip on PythonAnywhere and reload
         run: |
           pa_host="${{ secrets.PYTHONANYWHERE_HOST }}"
           username="${{ secrets.PYTHONANYWHERE_USERNAME }}"
@@ -112,8 +118,7 @@ jobs:
             "https://$pa_host/api/v0/user/$username/consoles/" \
             -H "Authorization: Token $token" \
             -H "Content-Type: application/json" \
-            --data '{"executable": "bash"}' \
-            > console.json
+            --data '{"executable": "bash"}' > console.json
 
           CONSOLE_ID=$(jq -r '.id' console.json)
 
@@ -121,8 +126,8 @@ jobs:
             "https://$pa_host/api/v0/user/$username/consoles/$CONSOLE_ID/send_input/" \
             -H "Authorization: Token $token" \
             -H "Content-Type: application/json" \
-            --data "unzip -o ~/${{ steps.name.outputs.app_name }}/deploy.zip -d ~/${{ steps.name.outputs.app_name }}/"
-  
+            --data "mkdir -p ~/${{ steps.app.outputs.app_name }}; unzip -o ~/${{ steps.app.outputs.app_name }}/deploy.zip -d ~/${{ steps.app.outputs.app_name }}/"
+
           curl -X POST \
             "https://$pa_host/api/v0/user/$username/webapps/$app/reload/" \
             -H "Authorization: Token $token"
@@ -140,7 +145,7 @@ jobs:
 
       - name: Retry /info endpoint until ready
         run: |
-          URL= https://${{ secrets.PYTHONANYWHERE_APP_NAME }}/info
+          URL="https://${{ secrets.PYTHONANYWHERE_APP_NAME }}/info"
           
           echo "Starting smoke test against $URL"
           
