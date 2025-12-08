@@ -87,53 +87,42 @@ jobs:
           git push https://${{ secrets.PAT_TOKEN }}@github.com/${{ github.repository }}.git HEAD:main || true 
           
       - name: Trigger Render Deployment
+        id: trigger
         run: |
-          echo "Triggering Render deployment…"
+          echo "Triggering Render deployment..."
+          RESPONSE=$(curl -s -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}")
+          echo "Render deploy hook response: $RESPONSE"
           
-          RESPONSE=$(curl -s -X POST \
-            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
-            -H "Content-Type: application/json" \
-            -d '{"clearCache":true}' \
-            https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys)
+      - name: Poll Render API for deployment completion
+        id: poll
+        run: |
+          echo "Polling Render for latest deployment..."
+          APP_ID="${{ secrets.RENDER_SERVICE_ID }}"
+          API_KEY="${{ secrets.RENDER_API_KEY }}"
+          TIMEOUT=900   # 10 minutes max
+          SLEEP=15      # seconds between polls
+          ELAPSED=0
 
-          echo "=== RAW RENDER RESPONSE ==="
-          echo "$RESPONSE"
-          echo "==========================="
+          while true; do
+            RESPONSE=$(curl -s -H "Authorization: Bearer $API_KEY" \
+              "https://api.render.com/v1/services/$APP_ID/deploys?limit=1")
+            
+            DEPLOY_STATUS=$(echo "$RESPONSE" | jq -r '.deploys[0].state')
+            DEPLOY_COMMIT=$(echo "$RESPONSE" | jq -r '.deploys[0].commit')
+            echo "Latest deploy status: $DEPLOY_STATUS, commit: $DEPLOY_COMMIT"
 
-          DEPLOY_ID=$(echo "RESPONSE" | jq -r '.id')
-          
-          if [ "$DEPLOY_ID" = "null" ] || [ -z "$DEPLOY_ID" ]; then
-            echo "ERROR: Render did not return a deployment ID."
-            exit 1
-          fi
-
-          echo "Polling Render deployment until live…"
-
-          for i in {1..90}; do
-            STATUS=$(curl -s \
-              -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
-              https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys/$DEPLOY_ID \
-              | jq -r '.status')
-
-            echo "Status: $STATUS"
-
-            if [ "$STATUS" = "live" ]; then
-              echo "Render deployment is live!"
+            if [[ "$DEPLOY_COMMIT" == "$(git rev-parse HEAD)" && "$DEPLOY_STATUS" == "live" ]]; then
+              echo "Deployment completed successfully!"
               break
             fi
 
-            if [ "$STATUS" = "failed" ]; then
-              echo "ERROR: Render deployment failed."
+            ELAPSED=$((ELAPSED+SLEEP))
+            if [ "$ELAPSED" -ge "$TIMEOUT" ]; then
+              echo "ERROR: Deployment did not finish within $TIMEOUT seconds."
               exit 1
             fi
-
-            sleep 10
+            sleep $SLEEP
           done
-
-          if [ "$STATUS" != "live" ]; then
-            echo "ERROR: Deployment did not become live within timeout."
-            exit 1
-          fi
 
   smoke_test:
     name: Smoke Test
