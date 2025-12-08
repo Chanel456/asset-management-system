@@ -124,13 +124,22 @@ jobs:
 
       - name: Validate version matches deployment
         run: |
-          VERSION_DEPLOYED=$(echo "$INFO" | jq -r '.version')
-          echo "Version deployed: $VERSION_DEPLOYED"
-          
-          if [ "$VERSION_DEPLOYED" == "null" ]; then
-            echo "Smoke test failed: version missing!"
+          EXPECTED_VERSION="${{ needs.deploy.outputs.version }}" || true
+          EXPECTED_VERSION="${{ steps.bump.outputs.version }}" || true
+            
+          DEPLOYED_VERSION=$(jq -r '.version' info.json)
+            
+          echo "Expected version: $EXPECTED_VERSION"
+          echo "Deployed version: $DEPLOYED_VERSION"
+            
+          if [ -z "$DEPLOYED_VERSION" ] || [ "$DEPLOYED_VERSION" == "null" ]; then
+            echo "ERROR: Version missing in /info response"
             exit 1
           fi
-
-          echo "Version returned from server: $VERSION_DEPLOYED"
-          echo "Smoke test completed successfully.
+            
+          if [ "$EXPECTED_VERSION" != "$DEPLOYED_VERSION" ]; then
+            echo "ERROR: Version mismatch! Deployment may not have refreshed yet."
+            exit 1
+          fi
+            
+          echo "Version matches. Smoke test successful."
