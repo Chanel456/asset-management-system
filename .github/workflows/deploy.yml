@@ -102,7 +102,7 @@ jobs:
 
       - name: Retry /info endpoint until ready
         run: |
-          URL="https://${{ secrets.RENDER_LIVE_URL }}/info"
+          URL="${{ secrets.RENDER_LIVE_URL }}/info"
           
           echo "Starting smoke test against $URL"
           
@@ -111,12 +111,12 @@ jobs:
           
           until curl -sf "$URL" > info.json; do
             ATTEMPTS=$((ATTEMPTS+1))
-            echo "Attempt $ATTEMPTS/$MAX_ATTEMPTS failed. Retrying in 30 seconds..."
+            echo "Attempt $ATTEMPTS/$MAX_ATTEMPTS failed. Retrying in 15 seconds..."
             if [ $ATTEMPTS -ge $MAX_ATTEMPTS ]; then
             echo "ERROR: /info endpoint did not become ready in time."
             exit 1
           fi
-          sleep 30
+          sleep 15
           done
           
           echo "200 response received"
