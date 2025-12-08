@@ -111,12 +111,12 @@ jobs:
           
           until curl -sf "$URL" > info.json; do
             ATTEMPTS=$((ATTEMPTS+1))
-            echo "Attempt $ATTEMPTS/$MAX_ATTEMPTS failed. Retrying in 5 seconds..."
+            echo "Attempt $ATTEMPTS/$MAX_ATTEMPTS failed. Retrying in 30 seconds..."
             if [ $ATTEMPTS -ge $MAX_ATTEMPTS ]; then
             echo "ERROR: /info endpoint did not become ready in time."
             exit 1
           fi
-          sleep 10
+          sleep 30
           done
           
           echo "200 response received"
