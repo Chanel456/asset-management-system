@@ -90,17 +90,18 @@ jobs:
         run: |
           echo "Triggering Render deployment…"
           
-          TRIGGER_RESPONSE=$(curl -s -X POST \
+          RESPONSE=$(curl -s -X POST \
             -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
             -H "Content-Type: application/json" \
-            -d '{"clearCache":false}' \
+            -d '{"clearCache":true}' \
             https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys)
 
-          echo "Response: $TRIGGER_RESPONSE"
+          echo "=== RAW RENDER RESPONSE ==="
+          echo "$RESPONSE"
+          echo "==========================="
 
-          DEPLOY_ID=$(echo "$TRIGGER_RESPONSE" | jq -r '.id')
-          echo "Deploy ID: $DEPLOY_ID"
-
+          DEPLOY_ID=$(echo "RESPONSE" | jq -r '.id')
+          
           if [ "$DEPLOY_ID" = "null" ] || [ -z "$DEPLOY_ID" ]; then
             echo "ERROR: Render did not return a deployment ID."
             exit 1
