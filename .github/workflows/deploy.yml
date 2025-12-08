@@ -117,8 +117,9 @@ jobs:
             echo ""
             
             DEPLOY_STATUS=$(echo "$RESPONSE" | jq -r '.[0].deploy.status')
-            DEPLOY_COMMIT=$(echo "$RESPONSE" | jq -r '.[0]deploy.commit.id')
-            echo "Latest deploy status: $DEPLOY_STATUS, commit: $DEPLOY_COMMIT"
+            DEPLOY_COMMIT=$(echo "$RESPONSE" | jq -r '.[0].deploy.commit.id')
+            LATEST_COMMIT=$(git rev-parse HEAD)
+            echo "Latest deploy status: $DEPLOY_STATUS, commit: $DEPLOY_COMMIT, latest commit: $LATEST_COMMIT"
             
             echo "Parsed → Status: $DEPLOY_STATUS | Commit: $DEPLOY_COMMIT"
 
