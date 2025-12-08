@@ -108,10 +108,19 @@ jobs:
               -H "Accept: application/json" \
               -H "Authorization: Bearer $API_KEY" \
               "https://api.render.com/v1/services/$APP_ID/deploys?limit=1")
+          
             
-            DEPLOY_STATUS=$(echo "$RESPONSE" | jq -r '.[0].status')
-            DEPLOY_COMMIT=$(echo "$RESPONSE" | jq -r '.[0].commit.id')
+            echo ""
+            echo "=== RAW RENDER RESPONSE ==="
+            echo "$RESPONSE" | jq .
+            echo "==========================="
+            echo ""
+            
+            DEPLOY_STATUS=$(echo "$RESPONSE" | jq -r '.[0].deploy.status')
+            DEPLOY_COMMIT=$(echo "$RESPONSE" | jq -r '.[0]deploy.commit.id')
             echo "Latest deploy status: $DEPLOY_STATUS, commit: $DEPLOY_COMMIT"
+            
+            echo "Parsed → Status: $DEPLOY_STATUS | Commit: $DEPLOY_COMMIT"
 
             if [[ "$DEPLOY_COMMIT" == "$(git rev-parse HEAD)" && "$DEPLOY_STATUS" == "live" ]]; then
               echo "Deployment completed successfully!"
