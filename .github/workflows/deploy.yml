@@ -86,6 +86,48 @@ jobs:
           git commit -m "Bump version to ${{ steps.bump.outputs.version }} [skip ci]" || true
           git push https://${{ secrets.PAT_TOKEN }}@github.com/${{ github.repository }}.git HEAD:main || true
           
+      - name: Get latest GitHub commit SHA
+        id: github_sha
+        run: |
+          LATEST_SHA=$(git rev-parse HEAD)
+          echo "github_sha=$LATEST_SHA" >> $GITHUB_OUTPUT
+          echo "GitHub SHA: $LATEST_SHA"
+
+      - name: Wait until Render sees the latest commit
+        run: |
+          echo "Polling Render to detect GitHub commit..."
+
+          SERVICE_ID="${{ secrets.RENDER_SERVICE_ID }}"
+          API_KEY="${{ secrets.RENDER_API_KEY }}"
+          TARGET_SHA="${{ steps.github_sha.outputs.github_sha }}"
+
+          MAX_ATTEMPTS=20
+          ATTEMPT=0
+
+          while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
+            ATTEMPT=$((ATTEMPT + 1))
+
+            # Get Render’s currently detected commit SHA
+            CURRENT_SHA=$(curl -s -H "Authorization: Bearer $API_KEY" \
+              "https://api.render.com/v1/services/$SERVICE_ID" | jq -r '.service.repo.headCommitSHA')
+
+            echo "Attempt $ATTEMPT: Render sees SHA: $CURRENT_SHA"
+            echo "Expected SHA: $TARGET_SHA"
+
+            if [ "$CURRENT_SHA" == "$TARGET_SHA" ]; then
+              echo "Render has detected the newest commit."
+              break
+            fi
+
+            echo "Render has not updated yet. Retrying in 10s..."
+            sleep 10
+          done
+
+          if [ "$CURRENT_SHA" != "$TARGET_SHA" ]; then
+            echo "ERROR: Render never detected the latest GitHub commit!"
+            exit 1
+          fi 
+          
       - name: Trigger Render Deployment
         run: |
           curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
@@ -100,8 +142,8 @@ jobs:
     steps:
       - name: Wait for deployment to settle
         run: |
-          echo "Waiting 180 seconds for deployment for Render to reload..."
-          sleep 180
+          echo "Waiting 30 seconds for deployment for Render to reload..."
+          sleep 30
 
       - name: Retry /info endpoint until ready
         run: |
