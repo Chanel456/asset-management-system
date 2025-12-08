@@ -104,11 +104,13 @@ jobs:
           ELAPSED=0
 
           while true; do
-            RESPONSE=$(curl -s -H "Authorization: Bearer $API_KEY" \
+            RESPONSE=$(curl -s \
+              -H "Accept: application/json" \
+              -H "Authorization: Bearer $API_KEY" \
               "https://api.render.com/v1/services/$APP_ID/deploys?limit=1")
             
-            DEPLOY_STATUS=$(echo "$RESPONSE" | jq -r '.[0].state')
-            DEPLOY_COMMIT=$(echo "$RESPONSE" | jq -r '.[0].commit')
+            DEPLOY_STATUS=$(echo "$RESPONSE" | jq -r '.[0].status')
+            DEPLOY_COMMIT=$(echo "$RESPONSE" | jq -r '.[0].commit.id')
             echo "Latest deploy status: $DEPLOY_STATUS, commit: $DEPLOY_COMMIT"
 
             if [[ "$DEPLOY_COMMIT" == "$(git rev-parse HEAD)" && "$DEPLOY_STATUS" == "live" ]]; then
