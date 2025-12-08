@@ -100,8 +100,8 @@ jobs:
     steps:
       - name: Wait for deployment to settle
         run: |
-          echo "Waiting 60 seconds for deployment for Render to reload..."
-          sleep 60
+          echo "Waiting 180 seconds for deployment for Render to reload..."
+          sleep 180
 
       - name: Retry /info endpoint until ready
         run: |
