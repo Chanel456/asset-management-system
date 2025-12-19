@@ -73,7 +73,8 @@ def forgot():
 
     if user:
         send_password_reset_email(user)
-        flash("If that email exists, we have sent a password reset link.", category='success')
+
+    flash("If that email exists, we have sent a password reset link.", category='success')
 
     return render_template('auth/forgot-password.html', user=current_user, form=form)
 
