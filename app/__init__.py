@@ -85,8 +85,8 @@ def create_app(config_class=Config):
         if not path.exists('app/' + DB_NAME):
             db.create_all()
             current_app.logger.info('Database created')
-            if os.getenv('RENDER') == 'true':
-                seed_users()
+            # if os.getenv('RENDER') == 'true':
+            #     seed_users()
 
     # Initialise login manager
     login_manager = LoginManager()
