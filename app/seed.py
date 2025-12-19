@@ -41,5 +41,3 @@ def seed_users():
                         password=generate_password_hash(password, method='scrypt'), is_admin=user_data['is_admin'])
         db.session.add(new_user)
         db.session.commit()
-
-        # User.add_user(email, user_data['first_name'], user_data['last_name'], password, user_data['is_admin'])
