@@ -1,4 +1,4 @@
-from datetime import timedelta, datetime
+from datetime import timedelta, datetime, timezone
 
 from flask import current_app
 from sqlalchemy import event
@@ -53,7 +53,7 @@ class FailedLogin(db.Model):
     @staticmethod
     def recent_failures_for_email(email):
         """Find failed login by email"""
-        since = datetime.utcnow() - FailedLogin.WINDOW
+        since = datetime.now(timezone.utc) - FailedLogin.WINDOW
         try:
             return FailedLogin.query.filter(FailedLogin.email == email,FailedLogin.created_at >= since).count()
         except SQLAlchemyError as err:
@@ -68,7 +68,7 @@ class FailedLogin(db.Model):
     @staticmethod
     def recent_failures_for_ip(ip):
         """Find failed login by ip address"""
-        since = datetime.utcnow() - FailedLogin.WINDOW
+        since = datetime.now(timezone.utc) - FailedLogin.WINDOW
         try:
             return FailedLogin.query.filter(FailedLogin.ip == ip, FailedLogin.created_at >= since).count()
         except SQLAlchemyError as err:
@@ -82,7 +82,7 @@ class FailedLogin(db.Model):
     @staticmethod
     def recent_global_failures():
         """Finds all recent login failures"""
-        since = datetime.utcnow() - FailedLogin.WINDOW
+        since = datetime.now(timezone.utc) - FailedLogin.WINDOW
         try:
             return FailedLogin.query.filter(FailedLogin.created_at >= since).count()
         except SQLAlchemyError as err:
