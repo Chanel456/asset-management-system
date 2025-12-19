@@ -9,15 +9,15 @@ from app.models.user import User
 def seed_users():
     users_to_seed = [
         {
-            'email': 'admin@gmail.com',
+            'email': os.environ.get('ADMIN_EMAIL'),
             'password': os.environ.get('ADMIN_PASSWORD'),
             'first_name': 'Admin',
             'last_name': 'Admin',
             'is_admin': True,
         },
         {
-            'email': 'regular@gmail.com',
-            'password': '',
+            'email': os.environ.get('REGULAR_EMAIL'),
+            'password': os.environ.get('REGULAR_PASSWORD'),
             'first_name': 'Regular',
             'last_name': 'Regular',
             'is_admin': False,
