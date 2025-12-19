@@ -1,6 +1,7 @@
 from flask import render_template, request, flash, redirect, url_for, session, current_app
 from flask_login import login_user, login_required, logout_user, current_user
 
+from app.auth.form_errors import LoginFormErrors
 from app.auth.forms import RegistrationForm, LoginForm, ForgotPasswordForm, ResetPasswordForm
 from app.auth.helpers import verify_reset_token, send_password_reset_email
 from app.models.failed_login import FailedLogin
@@ -29,7 +30,7 @@ def login():
                 return redirect(url_for('views.dashboard'))
         else:
             FailedLogin.record_failed_login(form.login_email.data, request.remote_addr, request.user_agent.string)
-            flash('There is no account linked with this email address. Please create an account', category='error')
+            flash(LoginFormErrors.INCORRECT_EMAIL_OR_PASSWORD.value, category='error')
 
     return render_template('auth/login.html', user=current_user, form=form)
 

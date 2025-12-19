@@ -1,10 +1,7 @@
-from dotenv import load_dotenv
 import secrets
 import os
 
 DB_NAME = 'database.db'
-
-load_dotenv('/home/Chanelj/asset-management-system/.env')
 
 class ProdConfig:
     TESTING = False

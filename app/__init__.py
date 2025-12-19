@@ -1,3 +1,4 @@
+import os
 import uuid
 
 from flask import Flask, render_template, url_for, g, request, current_app, jsonify
@@ -8,6 +9,7 @@ from werkzeug.utils import redirect
 
 from app.extensions import db, init_extensions
 from app.info import APP_NAME, APP_VERSION, GIT_COMMIT, DEPLOYED_AT
+from app.seed import seed_users
 from app.shared.logging import configure_logging
 from config.config import Config
 
@@ -83,6 +85,8 @@ def create_app(config_class=Config):
         if not path.exists('app/' + DB_NAME):
             db.create_all()
             current_app.logger.info('Database created')
+            if os.getenv('RENDER') == 'true':
+                seed_users()
 
     # Initialise login manager
     login_manager = LoginManager()
@@ -91,6 +95,6 @@ def create_app(config_class=Config):
 
     @login_manager.user_loader
     def load_user(id):
-        return User.query.get(int(id))
+        return db.session.get(User, int(id))
 
     return app

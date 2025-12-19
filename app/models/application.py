@@ -47,7 +47,7 @@ class Application(db.Model):
     def find_application_by_id(id):
         """Find an application in the Application table using the applications id"""
         try:
-            retrieved_application = Application.query.get(id)
+            retrieved_application = db.session.get(Application, id)
             return retrieved_application
         except SQLAlchemyError as err:
             current_app.logger.error(

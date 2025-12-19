@@ -48,7 +48,7 @@ class Server (db.Model):
     def find_server_by_id(server_id):
         """Find a server in the database using the server id"""
         try:
-            retrieved_server = Server.query.get(server_id)
+            retrieved_server = db.session.get(Server, server_id)
             return retrieved_server
         except SQLAlchemyError as err:
             current_app.logger.error(
